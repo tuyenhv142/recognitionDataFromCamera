@@ -53,8 +53,9 @@ def is_zero_value(val_str):
 def ocr_worker():
     """Luồng chạy ngầm liên tục theo dõi camera 24/7. Bỏ qua 0.000, chỉ chụp 1 lần khi có số thực xuất hiện."""
     import gc
-    last_logged_val = logger.last_logged_value if logger.last_logged_value else "0.000"
+    last_logged_val = "0.000"
     cycle_counter = 0
+    zero_frame_count = 0
 
     while True:
         try:
@@ -81,14 +82,25 @@ def ocr_worker():
                     if crop_bytes:
                         app_state["latest_crop_bytes"] = crop_bytes
 
+                    if app_state.get("reset_trigger"):
+                        app_state["reset_trigger"] = False
+                        last_logged_val = "0.000"
+                        zero_frame_count = 0
+
                 # CHỈ CHỤP 1 LẦN KHI SỐ MỚI XUẤT HIỆN VÀ KHÁC 0.000
                 if app_state["is_logging"] and val is not None:
-                    if logger.last_logged_value:
-                        last_logged_val = logger.last_logged_value
-                    if not is_zero_value(val) and conf >= 0.40:
+                    if is_zero_value(val):
+                        zero_frame_count += 1
+                        # Khi màn hình về 0.000 (ổn định từ 2 frame ~ 0.8s):
+                        # Reset lại mốc để khi số mới (kể cả số cũ như 0.001) xuất hiện lại sẽ được chụp ngay!
+                        if zero_frame_count >= 2:
+                            last_logged_val = "0.000"
+                    elif conf >= 0.40:
+                        zero_frame_count = 0
                         # Đây là số thực tế > 0 (ví dụ 0.001, 0.002, ...)
+                        # Chụp và lưu CSV đúng 1 lần khi số mới xuất hiện hoặc khi giá trị thay đổi
                         if val != last_logged_val:
-                            logger.log_reading(
+                            record = logger.log_reading(
                                 value=val,
                                 confidence=conf,
                                 frame=frame,
@@ -96,10 +108,6 @@ def ocr_worker():
                             )
                             last_logged_val = val
                             print(f"[*] Captured & logged once for new reading (>0): {val}")
-                    else:
-                        # Nếu giá trị là 0.000: BỎ QUA KHÔNG LƯU, cập nhật mốc để khi có số > 0 sẽ chụp ngay
-                        if is_zero_value(val) and last_logged_val != "0.000":
-                            last_logged_val = "0.000"
 
             cycle_counter += 1
             if cycle_counter % 300 == 0:
@@ -183,10 +191,13 @@ def toggle_logging():
     with app_state["lock"]:
         if action == "start":
             app_state["is_logging"] = True
+            app_state["reset_trigger"] = True
         elif action == "stop":
             app_state["is_logging"] = False
         else:
             app_state["is_logging"] = not app_state["is_logging"]
+            if app_state["is_logging"]:
+                app_state["reset_trigger"] = True
         is_log = app_state["is_logging"]
 
     return jsonify({"success": True, "is_logging": is_log})
@@ -273,11 +284,15 @@ def delete_record_endpoint():
         snapshots.append(snapshot)
 
     count = logger.delete_records(timestamps=timestamps, snapshots=snapshots)
+    with app_state["lock"]:
+        app_state["reset_trigger"] = True
     return jsonify({"success": True, "deleted_count": count})
 
 @app.route('/api/clear_all', methods=['POST'])
 def clear_all_endpoint():
     success = logger.clear_all()
+    with app_state["lock"]:
+        app_state["reset_trigger"] = True
     return jsonify({"success": success})
 
 if __name__ == '__main__':
