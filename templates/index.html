@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Camera Data Acquisition & OCR Logger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0d14;
+            --bg-secondary: #121824;
+            --bg-card: rgba(22, 30, 46, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --lcd-color: #38ef7d;
+            --lcd-bg: #0b1a13;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Layout Grid */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        /* Video Container */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 4 / 3;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-feed-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .rec-indicator {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+        }
+
+        .rec-indicator.active {
+            display: flex;
+        }
+
+        /* Digital Meter Display Box */
+        .digital-meter-card {
+            background: linear-gradient(145deg, #091310, #0c1a16);
+            border: 2px solid #1c3d32;
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 239, 125, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .digital-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .digital-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--lcd-color);
+            text-shadow: 0 0 15px rgba(56, 239, 125, 0.6), 0 0 30px rgba(56, 239, 125, 0.2);
+            line-height: 1;
+            letter-spacing: 0.05em;
+        }
+
+        .digital-unit {
+            font-size: 1rem;
+            color: #10b981;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .meter-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .meta-item strong {
+            color: #e2e8f0;
+        }
+
+        /* Crop preview */
+        .crop-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+
+        .crop-thumb {
+            height: 50px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #111;
+        }
+
+        .crop-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Control Buttons */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        /* Settings Form / Sliders */
+        .roi-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-input, .form-select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .range-slider {
+            width: 100%;
+            accent-color: var(--accent-cyan);
+        }
+
+        /* Live Data Table */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 380px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-muted);
+            padding: 10px 14px;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .val-badge {
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--lcd-color);
+        }
+
+        .table-thumb {
+            width: 48px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .table-thumb:hover {
+            transform: scale(1.15);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-del {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 6px;
+            padding: 5px 9px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-del:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-del-sm {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+        }
+
+        /* Modal Lightbox */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-img {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            align-self: flex-end;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <div class="brand-icon">📹</div>
+                <div>
+                    <h1>Live Camera Data Logger</h1>
+                    <p>Real-time LCD display OCR, automatic CSV logging & snapshot capture</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div id="cam-status" class="status-badge">
+                    <span class="pulse-dot"></span>
+                    <span id="cam-status-text">Connecting...</span>
+                </div>
+                <button id="btn-download" class="btn btn-secondary" onclick="downloadCSV()">
+                    📥 Download CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="grid-layout">
+            <!-- Left Column: Live Camera Stream & ROI Controls -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📡 Live Video Stream</span>
+                        <span id="fps-counter" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">(0 FPS)</span>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Green/Red Box: LCD Target Area</span>
+                </div>
+
+                <div class="video-wrapper">
+                    <img id="video-feed" src="/video_feed" alt="Video stream" class="video-feed-img">
+                    <div id="rec-tag" class="rec-indicator">
+                        <span class="pulse-dot" style="background: white;"></span>
+                        REC
+                    </div>
+                </div>
+
+                <!-- ROI Tuning Controls -->
+                <div class="card-header" style="margin-top: 8px;">
+                    <div class="card-title" style="font-size: 0.9rem;">
+                        ⚙️ LCD Alignment (Region of Interest)
+                    </div>
+                    <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="resetDefaultROI()">Default</button>
+                </div>
+
+                <div class="roi-sliders">
+                    <div class="form-group">
+                        <label>Position X (Horiz): <span id="val-x">96</span>px</label>
+                        <input type="range" id="slider-x" class="range-slider" min="0" max="310" value="96" oninput="onROIChange()">
+                    </div>
+                    <div class="form-group">
+                        <label>Position Y (Vert): <span id="val-y">184</span>px</label>
+                        <input type="range" id="slider-y" class="range-slider" min="0" max="230" value="184" oninput="onROIChange()">
+                    </div>
+                    <div class="form-group">
+                        <label>Width (W): <span id="val-w">90</span>px</label>
+                        <input type="range" id="slider-w" class="range-slider" min="30" max="200" value="90" oninput="onROIChange()">
+                    </div>
+                    <div class="form-group">
+                        <label>Height (H): <span id="val-h">36</span>px</label>
+                        <input type="range" id="slider-h" class="range-slider" min="15" max="100" value="36" oninput="onROIChange()">
+                    </div>
+                </div>
+
+                <div class="crop-preview-box">
+                    <img id="crop-preview-img" src="/api/crop_preview" class="crop-thumb" alt="LCD Crop">
+                    <div class="crop-info">
+                        <strong>Live OCR Target View</strong><br>
+                        Ensure all digits and decimal points fit comfortably inside this frame for highest accuracy.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Digital Reading & Logging Controls -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Digital Reading Display -->
+                <div class="digital-meter-card">
+                    <span class="digital-label">Real-Time Reading</span>
+                    <div id="live-value" class="digital-value">0.000</div>
+                    <div class="digital-unit">µSv/h</div>
+
+                    <div class="meter-meta">
+                        <div class="meta-item">Confidence: <strong id="live-conf">--%</strong></div>
+                        <div class="meta-item">Updated: <strong id="live-time">--:--:--</strong></div>
+                        <div class="meta-item">Logged: <strong id="total-records">0</strong> records</div>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="card">
+                    <div class="card-title">🎛️ Logging & Capture Controls</div>
+
+                    <div class="controls-grid">
+                        <button id="btn-toggle-log" class="btn btn-primary" onclick="toggleLogging()">
+                            🔴 Start Logging
+                        </button>
+                        <button class="btn btn-secondary" onclick="manualCapture()">
+                            📸 Snap & Save Now
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 6px; padding: 10px 14px; background: rgba(0, 242, 254, 0.06); border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2); font-size: 0.85rem; color: #cbd5e1;">
+                        ⚡ <strong>Capture Rule:</strong> Baseline <code>0.000</code> is ignored. Automatically captures <strong>EXACTLY ONCE</strong> when a new reading appears (&gt; 0). Does not capture duplicate images when value remains unchanged.
+                    </div>
+
+                    <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between;">
+                        <label style="cursor: pointer;" for="check-snapshot">
+                            📸 Automatically capture full-frame screenshot on log
+                        </label>
+                        <input type="checkbox" id="check-snapshot" checked onchange="updateSettings()" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-cyan);">
+                    </div>
+                </div>
+
+                <!-- Recent Logs Table -->
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-title">📋 Recent Data Records (Nhật ký)</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="csv-filename" style="font-size: 0.75rem; color: var(--text-muted);">readings_YYYY-MM-DD.csv</span>
+                            <button id="btn-delete-selected" class="btn-del btn-del-sm" onclick="deleteSelectedRecords()" style="display: none; background: rgba(239, 68, 68, 0.25); border-color: #ef4444; font-weight: 600;" title="Delete selected records">
+                                🗑️ Delete Selected (<span id="selected-count">0</span>)
+                            </button>
+                            <button id="btn-clear-all" class="btn-del btn-del-sm" onclick="clearAllRecords()" title="Clear all records from today's CSV">
+                                🗑️ Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 32px; text-align: center;">
+                                        <input type="checkbox" id="check-all" onclick="toggleSelectAll(this)" title="Select all / Chọn tất cả" style="cursor: pointer; accent-color: #ef4444;">
+                                    </th>
+                                    <th>Timestamp</th>
+                                    <th>Value</th>
+                                    <th>Confidence</th>
+                                    <th>Snapshot</th>
+                                    <th style="text-align: center; width: 85px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="log-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                                        No data recorded yet. Waiting for non-zero readings or click "Snap & Save Now".
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View Image Fullscreen -->
+    <div id="image-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="modal-title" style="font-weight: 600;">Snapshot Detail</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <img id="modal-img" class="modal-img" src="" alt="Snapshot Detail">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button id="modal-delete" class="btn-del" onclick="deleteModalRecord()" style="font-size: 0.8rem; padding: 6px 12px;">
+                    🗑️ Delete Record
+                </button>
+                <a id="modal-download" href="" download class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">
+                    ⬇ Download Image
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentROI = { x: 96, y: 184, w: 90, h: 36 };
+        let isLogging = false;
+
+        // Periodic status update from server
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                // Update camera status & FPS
+                const camBadge = document.getElementById('cam-status');
+                const camText = document.getElementById('cam-status-text');
+                const fpsText = document.getElementById('fps-counter');
+
+                if (data.camera_connected) {
+                    camBadge.className = 'status-badge';
+                    camText.innerText = 'Camera Online';
+                    fpsText.innerText = `(${data.camera_fps} FPS)`;
+                } else {
+                    camBadge.className = 'status-badge offline';
+                    camText.innerText = 'Camera Offline';
+                    fpsText.innerText = '(0 FPS)';
+                }
+
+                // Update digital display value
+                const liveVal = document.getElementById('live-value');
+                if (data.current_value) {
+                    liveVal.innerText = data.current_value;
+                }
+                document.getElementById('live-conf').innerText = data.confidence > 0 ? `${data.confidence}%` : '--%';
+                document.getElementById('live-time').innerText = data.last_read_time || '--:--:--';
+                document.getElementById('total-records').innerText = data.stats.total_recorded || 0;
+                document.getElementById('csv-filename').innerText = data.stats.current_csv || 'readings.csv';
+
+                // Logging toggle button state
+                isLogging = data.is_logging;
+                const btnLog = document.getElementById('btn-toggle-log');
+                const recTag = document.getElementById('rec-tag');
+                if (isLogging) {
+                    btnLog.innerText = '⏹ Stop Logging';
+                    btnLog.className = 'btn btn-danger';
+                    recTag.classList.add('active');
+                } else {
+                    btnLog.innerText = '🔴 Start Logging';
+                    btnLog.className = 'btn btn-primary';
+                    recTag.classList.remove('active');
+                }
+
+                // Update data table
+                renderTable(data.recent_records);
+
+                // Update live crop preview thumbnail
+                const cropImg = document.getElementById('crop-preview-img');
+                cropImg.src = '/api/crop_preview?t=' + Date.now();
+
+            } catch (err) {
+                console.error('Error fetching status:', err);
+            }
+        }
+
+        let selectedTimestamps = new Set();
+
+        function renderTable(records) {
+            const tbody = document.getElementById('log-table-body');
+            if (!records || records.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                            No data recorded yet. Waiting for non-zero readings or click "Snap & Save Now".
+                        </td>
+                    </tr>
+                `;
+                updateSelectedCount();
+                return;
+            }
+
+            let html = '';
+            records.forEach(r => {
+                let imgHtml = '-';
+                if (r.snapshot) {
+                    imgHtml = `<img src="/snapshots/${r.snapshot}" class="table-thumb" alt="thumb" onclick="openModal('/snapshots/${r.snapshot}', '${r.timestamp} - ${r.value}', '${r.timestamp}', '${r.snapshot}')">`;
+                }
+                const isChecked = selectedTimestamps.has(r.timestamp) ? 'checked' : '';
+                html += `
+                    <tr>
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="row-checkbox" value="${r.timestamp}" data-snap="${r.snapshot || ''}" ${isChecked} onchange="onRowCheckboxChange(this)" style="cursor: pointer; accent-color: #ef4444;">
+                        </td>
+                        <td>${r.timestamp}</td>
+                        <td><span class="val-badge">${r.value}</span></td>
+                        <td>${r.confidence}</td>
+                        <td>${imgHtml}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-del btn-del-sm" onclick="deleteSingleRecord('${r.timestamp}', '${r.snapshot || ''}', '${r.value}')" title="Delete record / Xóa dòng này">
+                                🗑️ Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            updateSelectedCount();
+        }
+
+        async function toggleLogging() {
+            try {
+                const res = await fetch('/api/toggle_logging', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: isLogging ? 'stop' : 'start' })
+                });
+                const data = await res.json();
+                fetchStatus();
+            } catch (e) {
+                alert('Server connection error!');
+            }
+        }
+
+        async function manualCapture() {
+            try {
+                const res = await fetch('/api/manual_capture', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    fetchStatus();
+                } else {
+                    alert(data.error || 'Snapshot capture failed!');
+                }
+            } catch (e) {
+                alert('Failed to send capture command!');
+            }
+        }
+
+        function onROIChange() {
+            const x = parseInt(document.getElementById('slider-x').value);
+            const y = parseInt(document.getElementById('slider-y').value);
+            const w = parseInt(document.getElementById('slider-w').value);
+            const h = parseInt(document.getElementById('slider-h').value);
+
+            document.getElementById('val-x').innerText = x;
+            document.getElementById('val-y').innerText = y;
+            document.getElementById('val-w').innerText = w;
+            document.getElementById('val-h').innerText = h;
+
+            currentROI = { x, y, w, h };
+            sendROI(currentROI);
+        }
+
+        // Debounce sending ROI updates
+        let roiTimer = null;
+        function sendROI(roi) {
+            clearTimeout(roiTimer);
+            roiTimer = setTimeout(async () => {
+                await fetch('/api/update_roi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(roi)
+                });
+            }, 100);
+        }
+
+        function resetDefaultROI() {
+            document.getElementById('slider-x').value = 96;
+            document.getElementById('slider-y').value = 184;
+            document.getElementById('slider-w').value = 90;
+            document.getElementById('slider-h').value = 36;
+            onROIChange();
+        }
+
+        async function updateSettings() {
+            const modeEl = document.getElementById('select-log-mode');
+            const intervalEl = document.getElementById('input-interval');
+            const mode = modeEl ? modeEl.value : 'change';
+            const interval = intervalEl ? parseFloat(intervalEl.value) : 1.0;
+            const snap = document.getElementById('check-snapshot') ? document.getElementById('check-snapshot').checked : true;
+
+            await fetch('/api/update_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    log_mode: mode,
+                    sampling_interval: interval,
+                    save_snapshot: snap
+                })
+            });
+        }
+
+        function downloadCSV() {
+            window.location.href = '/api/download_csv';
+        }
+
+        let activeModalRecord = { timestamp: '', snapshot: '' };
+
+        function openModal(imgSrc, title, timestamp, snapshot) {
+            activeModalRecord = { timestamp: timestamp || '', snapshot: snapshot || '' };
+            document.getElementById('modal-img').src = imgSrc;
+            document.getElementById('modal-download').href = imgSrc;
+            document.getElementById('modal-title').innerText = title || 'Snapshot Detail';
+            document.getElementById('image-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('image-modal').classList.remove('active');
+        }
+
+        function onRowCheckboxChange(cb) {
+            if (cb.checked) {
+                selectedTimestamps.add(cb.value);
+            } else {
+                selectedTimestamps.delete(cb.value);
+            }
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll(masterCb) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCb.checked;
+                if (masterCb.checked) {
+                    selectedTimestamps.add(cb.value);
+                } else {
+                    selectedTimestamps.delete(cb.value);
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedTimestamps.size;
+            const btnDelSelected = document.getElementById('btn-delete-selected');
+            const countSpan = document.getElementById('selected-count');
+            if (btnDelSelected && countSpan) {
+                countSpan.innerText = count;
+                btnDelSelected.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+            const checkAll = document.getElementById('check-all');
+            if (checkAll) {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkAll.checked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+            }
+        }
+
+        async function deleteSelectedRecords() {
+            if (selectedTimestamps.size === 0) return;
+            const count = selectedTimestamps.size;
+            if (!confirm(`Are you sure you want to delete ${count} selected record(s)?`)) {
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const timestamps = [];
+            const snapshots = [];
+            checkboxes.forEach(cb => {
+                timestamps.push(cb.value);
+                const snap = cb.getAttribute('data-snap');
+                if (snap) snapshots.push(snap);
+            });
+
+            try {
+                const res = await fetch('/api/delete_record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ timestamps, snapshots })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedTimestamps.clear();
+                    updateSelectedCount();
+                    fetchStatus();
+                } else {
+                    alert('Failed to delete selected records.');
+                }
+            } catch (e) {
+                alert('Server connection error!');
+            }
+        }
+
+        async function deleteSingleRecord(timestamp, snapshot, val) {
+            if (!confirm(`Delete record with value "${val}" at ${timestamp}?`)) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/delete_record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ timestamp, snapshot })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedTimestamps.delete(timestamp);
+                    updateSelectedCount();
+                    fetchStatus();
+                } else {
+                    alert('Failed to delete record.');
+                }
+            } catch (e) {
+                alert('Server connection error!');
+            }
+        }
+
+        async function deleteModalRecord() {
+            if (!activeModalRecord.timestamp && !activeModalRecord.snapshot) return;
+            if (!confirm('Are you sure you want to delete this record and its snapshot?')) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/delete_record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(activeModalRecord)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedTimestamps.delete(activeModalRecord.timestamp);
+                    closeModal();
+                    fetchStatus();
+                } else {
+                    alert('Failed to delete record.');
+                }
+            } catch (e) {
+                alert('Server connection error!');
+            }
+        }
+
+        async function clearAllRecords() {
+            if (!confirm('Are you sure you want to CLEAR ALL records from today? This action cannot be undone.')) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/clear_all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedTimestamps.clear();
+                    updateSelectedCount();
+                    fetchStatus();
+                } else {
+                    alert('Failed to clear records.');
+                }
+            } catch (e) {
+                alert('Server connection error!');
+            }
+        }
+
+        // Start polling loop
+        setInterval(fetchStatus, 900);
+        fetchStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Runtime camera snapshots (prevent pushing large amounts of images)
+snapshots/*.jpg
+snapshots/*.jpeg
+snapshots/*.png
+!snapshots/.gitkeep
+
+# CSV Logs folder structure
+!data/.gitkeep

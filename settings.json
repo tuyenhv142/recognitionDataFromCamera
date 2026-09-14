@@ -1,0 +1,17 @@
+{
+    "camera_url": "http://192.168.1.1:8080/video",
+    "roi": {
+        "x": 96,
+        "y": 184,
+        "w": 90,
+        "h": 36
+    },
+    "sampling_interval": 2.0,
+    "log_mode": "both",
+    "save_snapshot": true,
+    "unit": "uSv/h",
+    "data_dir": "data",
+    "snapshot_dir": "snapshots",
+    "port": 5055,
+    "host": "0.0.0.0"
+}
