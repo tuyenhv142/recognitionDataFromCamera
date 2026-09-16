@@ -306,6 +306,24 @@ def api_compare_data():
     )
     return jsonify(result)
 
+@app.route('/api/compare/update_gl_count', methods=['POST'])
+def api_compare_update_gl_count():
+    """Update count value for a GL240 record directly in local MySQL to match camera evidence."""
+    data = request.get_json() or {}
+    record_id = data.get("id")
+    new_count = data.get("count")
+    if record_id is None or new_count is None:
+        return jsonify({"success": False, "error": "Missing id or count parameter"}), 400
+
+    try:
+        record_id = int(record_id)
+        new_count = int(new_count)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "error": "Invalid format for id or count"}), 400
+
+    success = gl240_comparator.update_gl240_count(record_id, new_count)
+    return jsonify({"success": success, "id": record_id, "count": new_count})
+
 @app.route('/api/analyzer/dates')
 def api_analyzer_dates():
     data_dir = settings.get("data_dir", "data")

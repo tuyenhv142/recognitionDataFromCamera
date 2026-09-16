@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,6 +47,56 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+        }
+
+        /* Top Navigation Router */
+        .app-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(79, 172, 254, 0.2) 100%);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            box-shadow: 0 2px 10px rgba(0, 242, 254, 0.15);
         }
 
         /* Header */
@@ -802,33 +852,45 @@
 </head>
 <body>
     <div class="container">
+        <!-- Unified Application Router Navbar -->
+        <nav class="app-navbar">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-weight: 800; font-size: 1rem; color: #fff; letter-spacing: -0.01em;">RADIATION MONITOR SYSTEM</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-item">
+                    <span>📹</span> Live Camera
+                </a>
+                <a href="/analyzer" class="nav-item active">
+                    <span>🔍</span> Snapshot Analyzer
+                </a>
+                <a href="/compare" class="nav-item">
+                    <span>⚛️</span> GL240 Correlation
+                </a>
+            </div>
+        </nav>
+
         <!-- Header -->
         <header>
             <div class="brand">
                 <div class="brand-icon">🔍</div>
                 <div>
                     <h1>Snapshot Analyzer & Data Cleaner</h1>
-                    <p>Phân tích ảnh chụp, phát hiện bất thường & lọc dữ liệu CSV tốc độ cao</p>
+                    <p>Visual inspection, anomaly detection & high-speed CSV dataset cleaner</p>
                 </div>
             </div>
             <div class="header-actions">
-                <a href="/" class="btn btn-secondary">
-                    📹 Live Camera
-                </a>
-                <a href="/compare" class="btn btn-secondary" style="border-color: rgba(0, 242, 254, 0.4); color: var(--accent-cyan);">
-                    ⚛️ Đối chiếu GL240
-                </a>
                 <label style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-                    📅 Ngày:
+                    📅 Date:
                     <select id="select-date" class="select-date" onchange="onDateChange(this.value)">
-                        <option value="">Đang nạp...</option>
+                        <option value="">Loading...</option>
                     </select>
                 </label>
-                <button class="btn btn-secondary" onclick="syncWithDisk()" title="Xóa các dòng trong CSV mà file ảnh đã bị xóa trên đĩa">
+                <button class="btn btn-secondary" onclick="syncWithDisk()" title="Delete CSV rows whose snapshot image files no longer exist on disk">
                     🔄 Sync with Disk
                 </button>
                 <button class="btn btn-primary" onclick="downloadCurrentCSV()">
-                    📥 Tải file CSV
+                    📥 Download CSV
                 </button>
             </div>
         </header>
@@ -839,28 +901,28 @@
                 <div class="stat-icon" style="color: #00f2fe;">📋</div>
                 <div>
                     <div id="stat-total" class="stat-val">0</div>
-                    <div class="stat-lbl">Tổng số bản ghi CSV</div>
+                    <div class="stat-lbl">Total CSV Records</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color: #38ef7d;">🖼️</div>
                 <div>
                     <div id="stat-snaps" class="stat-val">0</div>
-                    <div class="stat-lbl">Ảnh có trên đĩa</div>
+                    <div class="stat-lbl">Snapshots On Disk</div>
                 </div>
             </div>
             <div class="stat-card" style="border-color: rgba(239, 68, 68, 0.4);">
                 <div class="stat-icon" style="color: #ef4444;">🚨</div>
                 <div>
                     <div id="stat-suspicious" class="stat-val" style="color: #ef4444;">0</div>
-                    <div class="stat-lbl">Ảnh nghi vấn / Bất thường</div>
+                    <div class="stat-lbl">Suspicious / Anomalies</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="color: #38ef7d;">✅</div>
                 <div>
                     <div id="stat-clean" class="stat-val" style="color: #38ef7d;">0</div>
-                    <div class="stat-lbl">Bản ghi chuẩn (0.001 - 0.003)</div>
+                    <div class="stat-lbl">Standard Records (0.001 - 0.003)</div>
                 </div>
             </div>
         </div>
@@ -869,61 +931,61 @@
         <div class="filter-section">
             <div class="filter-tabs">
                 <button class="tab-btn active" onclick="setFilter('suspicious')">
-                    🚨 Nghi vấn <span id="tab-cnt-suspicious" class="tab-badge">0</span>
+                    🚨 Suspicious <span id="tab-cnt-suspicious" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('outliers')">
-                    💥 Giá trị lạ (>0.01) <span id="tab-cnt-outliers" class="tab-badge">0</span>
+                    💥 Outliers (>0.01) <span id="tab-cnt-outliers" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('low_conf')">
-                    📉 Tin cậy thấp <span id="tab-cnt-lowconf" class="tab-badge">0</span>
+                    📉 Low Confidence <span id="tab-cnt-lowconf" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('seven')">
-                    7️⃣ Chứa số 7 <span id="tab-cnt-seven" class="tab-badge">0</span>
+                    7️⃣ Contains '7' <span id="tab-cnt-seven" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('missing')">
-                    ❌ Thiếu file ảnh <span id="tab-cnt-missing" class="tab-badge">0</span>
+                    ❌ Missing Image <span id="tab-cnt-missing" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('clean')">
-                    🟢 Chuẩn <span id="tab-cnt-clean" class="tab-badge">0</span>
+                    🟢 Standard <span id="tab-cnt-clean" class="tab-badge">0</span>
                 </button>
                 <button class="tab-btn" onclick="setFilter('all')">
-                    📁 Tất cả <span id="tab-cnt-all" class="tab-badge">0</span>
+                    📁 All Records <span id="tab-cnt-all" class="tab-badge">0</span>
                 </button>
             </div>
 
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <input type="text" id="search-box" class="search-input" placeholder="🔍 Tìm theo giờ / số..." oninput="onSearch(this.value)">
-                    <button id="btn-sort-time" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px;" onclick="toggleSortOrder()" title="Bấm để đổi thứ tự thời gian: Mới nhất trước hoặc Cũ nhất trước">
-                        <span id="sort-order-label">⬇️ Mới nhất trước</span>
+                    <input type="text" id="search-box" class="search-input" placeholder="🔍 Search time / value..." oninput="onSearch(this.value)">
+                    <button id="btn-sort-time" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px;" onclick="toggleSortOrder()" title="Toggle time sort: Newest first or Oldest first">
+                        <span id="sort-order-label">⬇️ Newest first</span>
                     </button>
                 </div>
                 <div class="toolbar-right">
                     <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="selectAllVisible(true)">
-                        ☑ Chọn tất cả
+                        ☑ Select All
                     </button>
                     <button id="btn-mark-clean-selected" class="btn btn-mark-clean" style="display: none; padding: 6px 12px; font-size: 0.82rem; font-weight: 600;" onclick="markSelectedClean(true)">
-                        ✅ Đánh dấu chuẩn (<span id="selected-clean-count">0</span>)
+                        ✅ Mark Standard (<span id="selected-clean-count">0</span>)
                     </button>
                     <button id="btn-del-selected" class="btn btn-del" style="display: none;" onclick="deleteSelected()">
-                        🗑️ Xóa (<span id="selected-count">0</span>) mục
+                        🗑️ Delete (<span id="selected-count">0</span>) items
                     </button>
 
-                    <!-- Grid Size Switcher (Nhỏ / Vừa / Lớn) -->
+                    <!-- Grid Size Switcher (Small / Medium / Large) -->
                     <div id="grid-size-controls" style="display: flex; gap: 3px; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; background: rgba(255, 255, 255, 0.02);">
-                        <span style="font-size: 0.72rem; color: var(--text-muted); padding: 0 4px;">Cỡ:</span>
-                        <button id="btn-size-sm" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;" onclick="setGridSize('sm')" title="Lưới nhỏ (nhiều ảnh trên màn hình)">Nhỏ</button>
-                        <button id="btn-size-md" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem; background: rgba(0, 242, 254, 0.2); border-color: var(--accent-cyan);" onclick="setGridSize('md')" title="Lưới vừa (mặc định gọn)">Vừa</button>
-                        <button id="btn-size-lg" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;" onclick="setGridSize('lg')" title="Lưới lớn">Lớn</button>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); padding: 0 4px;">Size:</span>
+                        <button id="btn-size-sm" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;" onclick="setGridSize('sm')" title="Small grid (more images per screen)">Small</button>
+                        <button id="btn-size-md" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem; background: rgba(0, 242, 254, 0.2); border-color: var(--accent-cyan);" onclick="setGridSize('md')" title="Medium grid (default compact)">Medium</button>
+                        <button id="btn-size-lg" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;" onclick="setGridSize('lg')" title="Large grid">Large</button>
                     </div>
 
-                    <!-- View Mode (Lưới / Bảng) -->
+                    <!-- View Mode (Grid / Table) -->
                     <div style="display: flex; gap: 4px; border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
                         <button id="btn-view-gallery" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: rgba(0, 242, 254, 0.2);" onclick="setViewMode('gallery')">
-                            🗂️ Lưới
+                            🗂️ Grid
                         </button>
                         <button id="btn-view-table" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="setViewMode('table')">
-                            📋 Bảng
+                            📋 Table
                         </button>
                     </div>
                 </div>
@@ -942,12 +1004,12 @@
                         <th style="width: 36px; text-align: center;">
                             <input type="checkbox" id="table-master-check" onchange="toggleMasterCheck(this)">
                         </th>
-                        <th>Thời gian</th>
-                        <th>Giá trị đo</th>
-                        <th>Độ tin cậy</th>
-                        <th>Ảnh Snapshot</th>
-                        <th>Cảnh báo / Ghi chú</th>
-                        <th style="text-align: center; width: 140px;">Thao tác</th>
+                        <th>Timestamp</th>
+                        <th>Reading</th>
+                        <th>Confidence</th>
+                        <th>Snapshot</th>
+                        <th>Anomalies / Notes</th>
+                        <th style="text-align: center; width: 140px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="table-tbody">
@@ -957,21 +1019,21 @@
         </div>
     </div>
 
-    <!-- Floating Bulk Action Bar (Hiển thị cố định ở đáy khi cuộn và có ảnh được chọn) -->
+    <!-- Floating Bulk Action Bar -->
     <div id="floating-bulk-bar" class="floating-bulk-bar">
         <div class="floating-bulk-info">
             <span class="floating-badge" id="float-selected-cnt">0</span>
-            <span>ảnh được chọn</span>
+            <span>selected item(s)</span>
         </div>
         <div class="floating-bulk-actions">
             <button class="btn btn-del" style="padding: 7px 16px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);" onclick="deleteSelected()">
-                🗑️ Xóa toàn bộ (<span id="float-del-cnt">0</span>)
+                🗑️ Delete All (<span id="float-del-cnt">0</span>)
             </button>
             <button class="btn btn-mark-clean" style="padding: 7px 14px; font-size: 0.85rem; font-weight: 600;" onclick="markSelectedClean(true)">
-                ✅ Đánh dấu chuẩn
+                ✅ Mark Standard
             </button>
             <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 0.82rem;" onclick="selectAllVisible(false)">
-                ✕ Bỏ chọn
+                ✕ Deselect
             </button>
         </div>
     </div>
@@ -988,31 +1050,31 @@
             </div>
 
             <div class="modal-img-stage">
-                <button class="nav-arrow nav-prev" onclick="navigateLightbox(-1)" title="Ảnh trước (Phím mũi tên Trái)">&#10094;</button>
+                <button class="nav-arrow nav-prev" onclick="navigateLightbox(-1)" title="Previous image (Left Arrow)">&#10094;</button>
                 <img id="modal-full-img" class="modal-img" src="" alt="Snapshot Full">
-                <button class="nav-arrow nav-next" onclick="navigateLightbox(1)" title="Ảnh tiếp theo (Phím mũi tên Phải)">&#10095;</button>
+                <button class="nav-arrow nav-next" onclick="navigateLightbox(1)" title="Next image (Right Arrow)">&#10095;</button>
             </div>
 
             <div class="modal-footer">
                 <div style="display: flex; align-items: center; gap: 14px;">
                     <div style="font-size: 0.9rem;">
-                        Giá trị: 
+                        Value: 
                         <input type="text" id="modal-input-val" class="val-edit-input" style="font-size: 1.1rem; width: 95px;">
-                        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="saveModalValue()">💾 Lưu</button>
+                        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="saveModalValue()">💾 Save</button>
                     </div>
                     <div style="font-size: 0.85rem; color: var(--text-muted);">
-                        Độ tin cậy: <strong id="modal-conf" style="color: white;">--%</strong>
+                        Confidence: <strong id="modal-conf" style="color: white;">--%</strong>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button id="modal-btn-mark-clean" class="btn btn-mark-clean" style="padding: 6px 12px; font-size: 0.85rem;" onclick="toggleModalMarkClean()">
-                        ✅ Đánh dấu chuẩn
+                        ✅ Mark Standard
                     </button>
                     <button class="btn btn-del" onclick="deleteModalCurrentRecord()">
-                        🗑️ Xóa ảnh & bản ghi này (Del)
+                        🗑️ Delete Record & Image (Del)
                     </button>
                     <a id="modal-btn-download" href="" download class="btn btn-secondary">
-                        ⬇ Tải ảnh
+                        ⬇ Download Image
                     </a>
                 </div>
             </div>
@@ -1040,7 +1102,7 @@
         function updateSortUI() {
             const lbl = document.getElementById('sort-order-label');
             if (lbl) {
-                lbl.innerText = currentSort === 'desc' ? '⬇️ Mới nhất trước' : '⬆️ Cũ nhất trước';
+                lbl.innerText = currentSort === 'desc' ? '⬇️ Newest first' : '⬆️ Oldest first';
             }
         }
 
@@ -1054,18 +1116,18 @@
                 sel.innerHTML = '';
 
                 if (!dates || dates.length === 0) {
-                    sel.innerHTML = '<option value="">Không có file CSV</option>';
+                    sel.innerHTML = '<option value="">No CSV files</option>';
                     return;
                 }
 
                 dates.forEach((d, idx) => {
                     const opt = document.createElement('option');
                     opt.value = d.date;
-                    opt.innerText = `${d.date} (${d.total_records} bản ghi - ${d.suspicious_records} nghi vấn)`;
+                    opt.innerText = `${d.date} (${d.total_records} records - ${d.suspicious_records} suspicious)`;
                     sel.appendChild(opt);
                 });
 
-                // Ưu tiên chọn ngày có nhiều bản ghi nhất hoặc ngày 2026-09-15
+                // Prioritize date with most records or 2026-09-15
                 let targetDate = dates[0].date;
                 const date15 = dates.find(d => d.date === '2026-09-15');
                 if (date15) {
@@ -1105,7 +1167,7 @@
                 document.getElementById('tab-cnt-clean').innerText = s.clean || 0;
                 document.getElementById('tab-cnt-all').innerText = s.total || 0;
 
-                // Tự động mở tab Tất cả nếu số nghi vấn = 0
+                // Auto open All tab if suspicious count = 0
                 if (s.suspicious === 0 && currentFilter === 'suspicious') {
                     currentFilter = 'all';
                     updateTabButtons();
@@ -1157,7 +1219,7 @@
 
                 // Tab filter
                 if (currentFilter === 'suspicious') return r.is_suspicious;
-                if (currentFilter === 'outliers') return r.anomalies.some(a => a.includes('bất thường') || a.includes('Spike'));
+                if (currentFilter === 'outliers') return r.anomalies.some(a => a.includes('Spike') || a.includes('High') || a.includes('bất thường'));
                 if (currentFilter === 'low_conf') return r.confidence_num < 60.0;
                 if (currentFilter === 'seven') return r.value.includes('7');
                 if (currentFilter === 'missing') return !r.file_exists;
@@ -1187,7 +1249,7 @@
             if (filteredRecords.length === 0) {
                 container.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">
-                        🎉 Không có bản ghi nào trong bộ lọc này!
+                        🎉 No records found matching this filter!
                     </div>
                 `;
                 return;
@@ -1213,7 +1275,7 @@
                     imgContent = `
                         <div class="missing-label">
                             <span style="font-size: 1.5rem;">❌</span>
-                            <span>Ảnh không có trên đĩa</span>
+                            <span>Image missing on disk</span>
                         </div>
                     `;
                 }
@@ -1222,16 +1284,16 @@
                 let tagHtml = '';
                 (r.anomalies || []).forEach(a => {
                     let c = 'tag-red';
-                    if (a.includes('chuẩn') || a.includes('✅')) c = 'tag-green';
+                    if (a.includes('chuẩn') || a.includes('Verified') || a.includes('✅')) c = 'tag-green';
                     else if (a.includes('7')) c = 'tag-purple';
-                    else if (a.includes('tin cậy')) c = 'tag-yellow';
-                    else if (a.includes('Thiếu')) c = 'tag-gray';
+                    else if (a.includes('tin cậy') || a.includes('confidence') || a.includes('Low')) c = 'tag-yellow';
+                    else if (a.includes('Thiếu') || a.includes('Missing')) c = 'tag-gray';
                     tagHtml += `<span class="tag ${c}">${a}</span>`;
                 });
 
                 html += `
                     <div class="snap-card ${suspClass} ${selectedClass}" id="card-${idx}">
-                        <div class="card-img-wrap" onclick="toggleCardSelection('${r.timestamp}', ${idx})" title="Nhấp ảnh để chọn / bỏ chọn (hoặc bấm nút 🔍 Xem bên dưới để phóng to)">
+                        <div class="card-img-wrap" onclick="toggleCardSelection('${r.timestamp}', ${idx})" title="Click image to select / deselect (or click 🔍 View to zoom)">
                             <input type="checkbox" class="card-check" id="check-${idx}" value="${r.timestamp}" data-snap="${r.snapshot}" ${isChecked} onclick="onCheckCard(event, '${r.timestamp}', ${idx})">
                             ${imgContent}
                         </div>
@@ -1239,7 +1301,7 @@
                             <div class="card-val-row">
                                 <div class="val-display" id="val-box-${idx}">
                                     <span id="val-text-${idx}">${r.value}</span>
-                                    <button class="btn-edit-val" onclick="startEditValue(${idx})" title="Sửa giá trị">✏️</button>
+                                    <button class="btn-edit-val" onclick="startEditValue(${idx})" title="Edit value">✏️</button>
                                 </div>
                                 <span class="conf-badge ${confClass}">${r.confidence}</span>
                             </div>
@@ -1254,13 +1316,13 @@
                             </div>
 
                             <div class="card-actions">
-                                <button class="btn btn-secondary" style="flex: 1; padding: 3px 6px; font-size: 0.72rem;" onclick="openLightbox(${idx})" title="Xem ảnh phóng to">
-                                    🔍 Xem
+                                <button class="btn btn-secondary" style="flex: 1; padding: 3px 6px; font-size: 0.72rem;" onclick="openLightbox(${idx})" title="View enlarged snapshot">
+                                    🔍 View
                                 </button>
-                                <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 6px; font-size: 0.72rem;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Bấm để hủy xác nhận chuẩn' : 'Đánh dấu ảnh này là chuẩn'}">
-                                    ${r.is_verified ? '✔️ Đã chuẩn' : '✅ Chuẩn'}
+                                <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 6px; font-size: 0.72rem;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Click to unverify standard' : 'Mark this snapshot as standard'}">
+                                    ${r.is_verified ? '✔️ Verified' : '✅ Standard'}
                                 </button>
-                                <button class="btn btn-del" style="padding: 3px 6px; font-size: 0.72rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')" title="Xóa dòng CSV & file ảnh">
+                                <button class="btn btn-del" style="padding: 3px 6px; font-size: 0.72rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')" title="Delete CSV row & image file">
                                     🗑️
                                 </button>
                             </div>
@@ -1278,7 +1340,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                            🎉 Không có bản ghi nào trong bộ lọc này!
+                            🎉 No records found matching this filter!
                         </td>
                     </tr>
                 `;
@@ -1290,13 +1352,13 @@
                 const isChecked = selectedKeys.has(r.timestamp) ? 'checked' : '';
                 let thumbHtml = '-';
                 if (r.file_exists) {
-                    thumbHtml = `<img src="/snapshots/${r.snapshot}" style="width: 52px; height: 39px; object-fit: contain; background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; cursor: pointer;" onclick="openLightbox(${idx})" title="Nhấp để xem ảnh đầy đủ">`;
+                    thumbHtml = `<img src="/snapshots/${r.snapshot}" style="width: 52px; height: 39px; object-fit: contain; background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; cursor: pointer;" onclick="openLightbox(${idx})" title="Click to view full image">`;
                 } else {
-                    thumbHtml = `<span style="color: #ef4444; font-size: 0.75rem;">Thiếu file</span>`;
+                    thumbHtml = `<span style="color: #ef4444; font-size: 0.75rem;">Missing file</span>`;
                 }
 
                 let tagHtml = (r.anomalies || []).map(a => {
-                    let c = a.includes('chuẩn') || a.includes('✅') ? 'tag-green' : 'tag-red';
+                    let c = a.includes('chuẩn') || a.includes('Verified') || a.includes('✅') ? 'tag-green' : 'tag-red';
                     return `<span class="tag ${c}" style="margin-right: 4px;">${a}</span>`;
                 }).join('');
 
@@ -1314,11 +1376,11 @@
                         <td>${thumbHtml}</td>
                         <td>${tagHtml || '<span style="color: #38ef7d; font-size: 0.75rem;">OK</span>'}</td>
                         <td style="text-align: center; white-space: nowrap;">
-                            <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 7px; font-size: 0.75rem; margin-right: 4px;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Bấm để hủy xác nhận chuẩn' : 'Đánh dấu ảnh này là chuẩn'}">
-                                ${r.is_verified ? '✔️ Đã chuẩn' : '✅ Chuẩn'}
+                            <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 7px; font-size: 0.75rem; margin-right: 4px;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Click to unverify standard' : 'Mark this snapshot as standard'}">
+                                ${r.is_verified ? '✔️ Verified' : '✅ Standard'}
                             </button>
                             <button class="btn btn-del" style="padding: 3px 8px; font-size: 0.75rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')">
-                                🗑️ Xóa
+                                🗑️ Delete
                             </button>
                         </td>
                     </tr>
@@ -1480,10 +1542,10 @@
                     updateSelectedUI();
                     await loadRecords(currentDate);
                 } else {
-                    alert('Lỗi cập nhật trạng thái chuẩn!');
+                    alert('Failed to update standard status!');
                 }
             } catch (e) {
-                alert('Lỗi kết nối máy chủ!');
+                alert('Server connection error!');
             }
         }
 
@@ -1493,7 +1555,7 @@
             const box = document.getElementById(`val-box-${idx}`);
             box.innerHTML = `
                 <input type="text" id="edit-input-${idx}" class="val-edit-input" value="${r.value}" onkeydown="onKeySaveEdit(event, ${idx}, '${r.timestamp}')">
-                <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="commitEditValue(${idx}, '${r.timestamp}')">Lưu</button>
+                <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="commitEditValue(${idx}, '${r.timestamp}')">Save</button>
             `;
             document.getElementById(`edit-input-${idx}`).focus();
         }
@@ -1522,15 +1584,15 @@
                     if (item) item.value = newVal;
                     loadRecords(currentDate);
                 } else {
-                    alert('Lỗi cập nhật giá trị');
+                    alert('Failed to update value');
                 }
             } catch (err) {
-                alert('Lỗi kết nối máy chủ!');
+                alert('Server connection error!');
             }
         }
 
         async function quickEditPrompt(ts, oldVal) {
-            const newVal = prompt(`Nhập giá trị mới cho bản ghi [${ts}]:`, oldVal);
+            const newVal = prompt(`Enter new value for record [${ts}]:`, oldVal);
             if (newVal !== null && newVal.trim() !== '') {
                 try {
                     const res = await fetch('/api/analyzer/update_value', {
@@ -1540,23 +1602,23 @@
                     });
                     const data = await res.json();
                     if (data.success) loadRecords(currentDate);
-                    else alert('Không sửa được giá trị');
+                    else alert('Failed to update value');
                 } catch (e) {
-                    alert('Lỗi kết nối!');
+                    alert('Connection error!');
                 }
             }
         }
 
         // Deletion
         async function deleteSingle(ts, snap) {
-            if (!confirm(`Xóa bản ghi thời gian [${ts}] cùng file ảnh tương ứng?`)) return;
+            if (!confirm(`Delete record [${ts}] and corresponding image file?`)) return;
             await executeDelete([ts], [snap]);
         }
 
         async function deleteSelected() {
             const count = selectedKeys.size;
             if (count === 0) return;
-            if (!confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN ${count} bản ghi đã chọn (cùng file ảnh trên đĩa)?`)) return;
+            if (!confirm(`Are you sure you want to PERMANENTLY DELETE ${count} selected records (and image files)?`)) return;
 
             const timestamps = Array.from(selectedKeys);
             const snapshots = [];
@@ -1586,16 +1648,16 @@
                     selectedKeys.clear();
                     loadRecords(currentDate);
                 } else {
-                    alert('Lỗi khi xóa bản ghi!');
+                    alert('Error deleting records!');
                 }
             } catch (e) {
-                alert('Lỗi kết nối máy chủ!');
+                alert('Server connection error!');
             }
         }
 
         // Sync with Disk
         async function syncWithDisk() {
-            if (!confirm(`Tự động đối chiếu thư mục snapshots: Xóa tất cả các dòng trong CSV ngày ${currentDate} mà file ảnh không còn tồn tại trên đĩa?`)) return;
+            if (!confirm(`Sync with disk: Remove all rows from ${currentDate} CSV whose image files no longer exist on disk?`)) return;
             try {
                 const res = await fetch('/api/analyzer/sync_disk', {
                     method: 'POST',
@@ -1604,11 +1666,11 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert(`Đã dọn dẹp thành công! Đã loại bỏ ${data.removed_count} bản ghi thiếu ảnh, còn lại ${data.remaining_count} bản ghi chuẩn.`);
+                    alert(`Cleaned successfully! Removed ${data.removed_count} missing-image records, ${data.remaining_count} records remaining.`);
                     loadRecords(currentDate);
                 }
             } catch (e) {
-                alert('Lỗi đồng bộ!');
+                alert('Sync error!');
             }
         }
 
@@ -1631,10 +1693,10 @@
             if (btnClean) {
                 if (r.is_verified) {
                     btnClean.className = 'btn btn-verified';
-                    btnClean.innerText = '✔️ Đã là chuẩn (Hủy)';
+                    btnClean.innerText = '✔️ Verified (Undo)';
                 } else {
                     btnClean.className = 'btn btn-mark-clean';
-                    btnClean.innerText = '✅ Đánh dấu chuẩn';
+                    btnClean.innerText = '✅ Mark Standard';
                 }
             }
 
@@ -1692,17 +1754,17 @@
                 if (data.success) {
                     r.value = newVal;
                     renderData();
-                    alert('Đã cập nhật giá trị thành công!');
+                    alert('Value updated successfully!');
                 }
             } catch (e) {
-                alert('Lỗi cập nhật!');
+                alert('Update error!');
             }
         }
 
         async function deleteModalCurrentRecord() {
             if (currentModalIndex < 0) return;
             const r = filteredRecords[currentModalIndex];
-            if (!confirm(`Xóa bản ghi [${r.timestamp}] và file ảnh này?`)) return;
+            if (!confirm(`Delete record [${r.timestamp}] and its image file?`)) return;
 
             await executeDelete([r.timestamp], [r.snapshot]);
             if (currentModalIndex < filteredRecords.length - 1) {

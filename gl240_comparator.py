@@ -375,3 +375,20 @@ def compare_neutron_and_camera(
         "gl_events": formatted_gl_list,
         "camera_readings": formatted_cam_list
     }
+
+def update_gl240_count(record_id: int, new_count: int) -> bool:
+    """Update the count column in neutron_counts table for record_id in local MySQL."""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE neutron_counts SET count = %s WHERE id = %s;", (new_count, record_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"[gl240_comparator] Error updating neutron_counts id {record_id}: {e}")
+        return False
+    finally:
+        conn.close()
+

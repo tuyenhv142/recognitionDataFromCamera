@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>So Sánh Đối Chiếu GL240 Neutron & Camera OCR</title>
+    <title>GL240 Neutron & Camera OCR Correlation Validator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-base: #0a0f1d;
-            --bg-card: rgba(15, 23, 42, 0.75);
-            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --bg-card: rgba(15, 23, 42, 0.78);
+            --bg-card-hover: rgba(30, 41, 59, 0.88);
             --border-color: rgba(255, 255, 255, 0.08);
             --border-highlight: rgba(0, 242, 254, 0.4);
             
@@ -45,19 +45,69 @@
             color: var(--text-main);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
-            padding: 20px;
+            padding: 18px 22px;
             display: flex;
             flex-direction: column;
         }
 
         .container {
-            max-width: 1700px;
+            max-width: 1720px;
             margin: 0 auto;
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 16px;
             flex: 1;
+        }
+
+        /* Top Navigation Router */
+        .app-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(79, 172, 254, 0.2) 100%);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            box-shadow: 0 2px 10px rgba(0, 242, 254, 0.15);
         }
 
         /* Header */
@@ -107,13 +157,6 @@
             margin-top: 2px;
         }
 
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
         /* Buttons */
         .btn {
             display: inline-flex;
@@ -152,6 +195,40 @@
             color: #ffffff;
         }
 
+        .btn-action-edit {
+            background: rgba(0, 242, 254, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 4px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-edit:hover {
+            background: rgba(0, 242, 254, 0.25);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-quick-match {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-quick-match:hover {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: var(--accent-green);
+        }
+
         /* Controls Bar */
         .controls-card {
             background: var(--bg-card);
@@ -181,7 +258,7 @@
             letter-spacing: 0.03em;
         }
 
-        select, input[type="number"] {
+        select, input[type="number"], input[type="text"] {
             background: rgba(15, 23, 42, 0.9);
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -192,7 +269,7 @@
             transition: all 0.2s;
         }
 
-        select:focus, input[type="number"]:focus {
+        select:focus, input[type="number"]:focus, input[type="text"]:focus {
             border-color: var(--accent-cyan);
             box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
         }
@@ -230,7 +307,7 @@
             gap: 6px;
             font-size: 0.8rem;
             font-weight: 600;
-            padding: 5px 10px;
+            padding: 5px 11px;
             border-radius: 8px;
             background: rgba(16, 185, 129, 0.12);
             color: var(--accent-green);
@@ -379,7 +456,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: calc(100vh - 340px);
+            max-height: calc(100vh - 350px);
             min-height: 480px;
         }
 
@@ -539,6 +616,8 @@
             padding-top: 6px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.76rem;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .match-badge {
@@ -587,6 +666,32 @@
             color: var(--accent-cyan);
         }
 
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-cyan);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
         /* Modal Preview */
         .modal {
             display: none;
@@ -611,7 +716,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 20px;
+            padding: 22px;
             max-width: 680px;
             width: 100%;
             display: flex;
@@ -659,6 +764,24 @@
             color: #fff;
         }
 
+        /* Preset buttons */
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--accent-cyan);
+            color: #031b2e;
+        }
+
         /* Empty / Loading State */
         .loading-state, .empty-state {
             display: flex;
@@ -688,24 +811,36 @@
 </head>
 <body>
     <div class="container">
+        <!-- Unified Application Router Navbar -->
+        <nav class="app-navbar">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-weight: 800; font-size: 1rem; color: #fff; letter-spacing: -0.01em;">RADIATION MONITOR SYSTEM</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-item">
+                    <span>📹</span> Live Camera
+                </a>
+                <a href="/analyzer" class="nav-item">
+                    <span>🔍</span> Snapshot Analyzer
+                </a>
+                <a href="/compare" class="nav-item active">
+                    <span>⚛️</span> GL240 Correlation
+                </a>
+            </div>
+        </nav>
+
         <!-- Header -->
         <header>
             <div class="brand">
                 <div class="brand-icon">⚛️</div>
                 <div>
-                    <h1>ĐỐI CHIẾU NEUTRON GL240 & CAMERA OCR</h1>
-                    <p>So sánh tương quan giữa xung Neutron đếm được trên GL240 và chỉ số bức xạ trên Camera</p>
+                    <h1>GL240 NEUTRON & CAMERA OCR CORRELATION VALIDATOR</h1>
+                    <p>Cross-validate GL240 physical neutron counts with Camera LCD OCR readings (typical 30s – 90s delay)</p>
                 </div>
             </div>
             <div class="header-actions">
-                <a href="/" class="btn btn-secondary">
-                    <span>📹</span> Live Camera
-                </a>
-                <a href="/analyzer" class="btn btn-secondary">
-                    <span>🔍</span> Phân Tích Snapshot
-                </a>
                 <button id="btn-refresh" class="btn btn-primary" onclick="loadData()">
-                    <span>🔄</span> Làm Mới
+                    <span>🔄</span> Refresh Data
                 </button>
             </div>
         </header>
@@ -713,23 +848,23 @@
         <!-- Controls & Parameter Settings -->
         <div class="controls-card">
             <div class="control-group">
-                <div class="control-label">Ngày Quan Sát:</div>
+                <div class="control-label">Observation Date:</div>
                 <select id="date-select" onchange="onDateChanged()"></select>
 
-                <div class="control-label" style="margin-left: 12px;">Độ Trễ Hợp Lệ (s):</div>
+                <div class="control-label" style="margin-left: 12px;">Valid Delay Window (s):</div>
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <input type="number" id="min-delay-input" value="15" min="0" max="180" style="width: 65px;" title="Độ trễ tối thiểu (giây)" onchange="loadData()">
+                    <input type="number" id="min-delay-input" value="15" min="0" max="180" style="width: 65px;" title="Minimum delay in seconds" onchange="loadData()">
                     <span style="color: var(--text-dim);">-</span>
-                    <input type="number" id="max-delay-input" value="95" min="10" max="300" style="width: 65px;" title="Độ trễ tối đa (giây)" onchange="loadData()">
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">(Khoảng 30s - 90s)</span>
+                    <input type="number" id="max-delay-input" value="95" min="10" max="300" style="width: 65px;" title="Maximum delay in seconds" onchange="loadData()">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">(Expected ~30s – 90s)</span>
                 </div>
             </div>
 
             <div class="control-group">
                 <div class="filter-pills">
-                    <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">Tất Cả</button>
-                    <button class="filter-pill" data-filter="correct" onclick="setFilter('correct')">✓ Chỉ Khớp Chuẩn</button>
-                    <button class="filter-pill" data-filter="unmatched" onclick="setFilter('unmatched')">⚠ Lệch / Chưa Khớp</button>
+                    <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">All Events</button>
+                    <button class="filter-pill" data-filter="correct" onclick="setFilter('correct')">✓ Correct Only</button>
+                    <button class="filter-pill" data-filter="unmatched" onclick="setFilter('unmatched')">⚠ Mismatches / Unmatched</button>
                 </div>
 
                 <div class="live-badge" id="live-indicator" style="cursor: pointer;" onclick="toggleAutoSync()">
@@ -742,19 +877,19 @@
         <!-- Summary KPIs -->
         <div class="stats-grid">
             <div class="stat-card" style="--card-accent: var(--accent-cyan);">
-                <div class="stat-title">Sự Kiện Neutron GL240</div>
+                <div class="stat-title">GL240 Neutron Events</div>
                 <div class="stat-value" id="kpi-gl-events">0</div>
-                <div class="stat-sub" id="kpi-gl-total-neutrons">Tổng số hạt: 0</div>
+                <div class="stat-sub" id="kpi-gl-total-neutrons">Total particles: 0</div>
             </div>
 
             <div class="stat-card" style="--card-accent: var(--accent-blue);">
-                <div class="stat-title">Bản Ghi Nhận Diện Camera</div>
+                <div class="stat-title">Camera OCR Readings</div>
                 <div class="stat-value" id="kpi-cam-readings">0</div>
-                <div class="stat-sub" id="kpi-cam-sub">Đã lưu trong CSV</div>
+                <div class="stat-sub" id="kpi-cam-sub">Captured in CSV</div>
             </div>
 
             <div class="stat-card" style="--card-accent: var(--accent-green);">
-                <div class="stat-title">Khớp Chuẩn (CORRECT)</div>
+                <div class="stat-title">Validated Match (CORRECT)</div>
                 <div class="stat-value" id="kpi-correct-matches" style="color: var(--accent-green);">
                     0 <span style="font-size: 1rem; color: var(--text-muted);" id="kpi-correct-pct">(0%)</span>
                 </div>
@@ -764,9 +899,9 @@
             </div>
 
             <div class="stat-card" style="--card-accent: var(--accent-purple);">
-                <div class="stat-title">Độ Trễ Trung Bình (Δt)</div>
+                <div class="stat-title">Avg Detection Delay (Δt)</div>
                 <div class="stat-value" id="kpi-avg-delay">0.0<span style="font-size: 1rem; color: var(--text-muted);">s</span></div>
-                <div class="stat-sub">Khoảng cách Neutron xuất hiện -> Camera chụp</div>
+                <div class="stat-sub">Time from Neutron event to Camera OCR</div>
             </div>
         </div>
 
@@ -777,14 +912,14 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <span>⚡</span>
-                        <span>Bảng GL240 (neutron_counts)</span>
+                        <span>GL240 Database (neutron_counts)</span>
                     </div>
-                    <span class="panel-badge" id="gl-panel-count">0 sự kiện</span>
+                    <span class="panel-badge" id="gl-panel-count">0 events</span>
                 </div>
                 <div class="panel-body" id="gl-list">
                     <div class="loading-state">
                         <div class="spinner"></div>
-                        <span>Đang tải dữ liệu GL240...</span>
+                        <span>Loading GL240 data...</span>
                     </div>
                 </div>
             </div>
@@ -794,14 +929,14 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <span>📷</span>
-                        <span>Camera OCR & Ảnh Chụp</span>
+                        <span>Camera OCR & Snapshots</span>
                     </div>
-                    <span class="panel-badge" id="cam-panel-count">0 bản ghi</span>
+                    <span class="panel-badge" id="cam-panel-count">0 readings</span>
                 </div>
                 <div class="panel-body" id="cam-list">
                     <div class="loading-state">
                         <div class="spinner"></div>
-                        <span>Đang nạp dữ liệu Camera...</span>
+                        <span>Loading Camera records...</span>
                     </div>
                 </div>
             </div>
@@ -812,7 +947,7 @@
     <div class="modal" id="image-modal" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 id="modal-title" style="font-size: 1.1rem; font-weight: 700;">Ảnh Snapshot Camera</h3>
+                <h3 id="modal-title" style="font-size: 1.1rem; font-weight: 700;">Camera Snapshot Evidence</h3>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-img-container">
@@ -821,10 +956,57 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div id="modal-info" style="font-size: 0.85rem; color: var(--text-muted); font-family: 'Share Tech Mono', monospace;"></div>
                 <a id="modal-download" href="" download class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
-                    <span>⬇</span> Tải Ảnh
+                    <span>⬇</span> Download Image
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- Edit Count Modal -->
+    <div class="modal" id="edit-count-modal" onclick="closeEditModal(event)">
+        <div class="modal-content" style="max-width: 460px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <span>✏️</span> Edit GL240 Neutron Count in Database
+                </h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <p style="font-size: 0.86rem; color: var(--text-muted);">
+                    Modify the physical count stored in MySQL table <code style="color: var(--accent-cyan);">gl240.neutron_counts</code> to match validated camera evidence.
+                </p>
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Event ID:</span>
+                    <span id="edit-event-id" style="font-family: 'Share Tech Mono', monospace; font-weight: 700; color: var(--accent-cyan);">#GL-</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">New Neutron Count:</label>
+                    <input type="number" id="edit-count-input" min="0" max="99" value="1" style="font-size: 1.1rem; font-family: 'Share Tech Mono', monospace; font-weight: 700;">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Quick Presets:</span>
+                    <button class="preset-btn" onclick="setPresetCount(1)">1</button>
+                    <button class="preset-btn" onclick="setPresetCount(2)">2</button>
+                    <button class="preset-btn" onclick="setPresetCount(3)">3</button>
+                    <button class="preset-btn" onclick="setPresetCount(8)">8</button>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitEditCount()">
+                        <span>💾</span> Save to Database
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-icon">✓</span>
+        <span id="toast-msg">Database updated successfully.</span>
     </div>
 
     <script>
@@ -832,12 +1014,23 @@
         let comparisonData = null;
         let autoSyncTimer = null;
         let isAutoSync = true;
+        let currentEditingId = null;
 
-        // Khởi động trang
+        // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             fetchDates();
             startAutoSync();
         });
+
+        function showToast(msg, icon = '✓') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            document.getElementById('toast-icon').textContent = icon;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
 
         function toggleAutoSync() {
             isAutoSync = !isAutoSync;
@@ -849,7 +1042,7 @@
                 startAutoSync();
             } else {
                 dot.style.display = 'none';
-                text.textContent = 'Sync Tắt';
+                text.textContent = 'Sync Paused';
                 if (autoSyncTimer) clearInterval(autoSyncTimer);
             }
         }
@@ -859,7 +1052,6 @@
             autoSyncTimer = setInterval(() => {
                 const dateSelect = document.getElementById('date-select');
                 const todayStr = new Date().toISOString().split('T')[0];
-                // Chỉ auto-sync nếu đang xem ngày hôm nay
                 if (isAutoSync && dateSelect.value === todayStr) {
                     loadData(true);
                 }
@@ -876,7 +1068,7 @@
                 dates.forEach((d, idx) => {
                     const opt = document.createElement('option');
                     opt.value = d;
-                    opt.textContent = d + (idx === 0 ? ' (Mới nhất)' : '');
+                    opt.textContent = d + (idx === 0 ? ' (Latest)' : '');
                     sel.appendChild(opt);
                 });
 
@@ -884,7 +1076,7 @@
                     loadData();
                 }
             } catch (err) {
-                console.error('Lỗi nạp danh sách ngày:', err);
+                console.error('Failed to load dates:', err);
             }
         }
 
@@ -909,10 +1101,10 @@
 
             if (!silent) {
                 document.getElementById('gl-list').innerHTML = `
-                    <div class="loading-state"><div class="spinner"></div><span>Đang đối chiếu dữ liệu...</span></div>
+                    <div class="loading-state"><div class="spinner"></div><span>Cross-correlating records...</span></div>
                 `;
                 document.getElementById('cam-list').innerHTML = `
-                    <div class="loading-state"><div class="spinner"></div><span>Đang đối chiếu dữ liệu...</span></div>
+                    <div class="loading-state"><div class="spinner"></div><span>Cross-correlating records...</span></div>
                 `;
             }
 
@@ -925,13 +1117,13 @@
                     renderLists();
                 }
             } catch (err) {
-                console.error('Lỗi nạp dữ liệu so sánh:', err);
+                console.error('Failed to load comparison data:', err);
             }
         }
 
         function updateKPIs(summary) {
             document.getElementById('kpi-gl-events').textContent = summary.total_gl_events;
-            document.getElementById('kpi-gl-total-neutrons').textContent = `Tổng số hạt: ${summary.total_gl_neutrons}`;
+            document.getElementById('kpi-gl-total-neutrons').textContent = `Total particles: ${summary.total_gl_neutrons}`;
             document.getElementById('kpi-cam-readings').textContent = summary.total_camera_readings;
             document.getElementById('kpi-correct-matches').innerHTML = `
                 ${summary.correct_matches} <span style="font-size: 1rem; color: var(--text-muted);">(${summary.accuracy_percent}%)</span>
@@ -958,10 +1150,10 @@
                 return true;
             });
 
-            document.getElementById('gl-panel-count').textContent = `${filteredGl.length} / ${glEvents.length} sự kiện`;
+            document.getElementById('gl-panel-count').textContent = `${filteredGl.length} / ${glEvents.length} events`;
 
             if (filteredGl.length === 0) {
-                glContainer.innerHTML = `<div class="empty-state">Không có sự kiện Neutron nào theo bộ lọc này.</div>`;
+                glContainer.innerHTML = `<div class="empty-state">No GL240 events match the current filter.</div>`;
             } else {
                 filteredGl.forEach(gl => {
                     const card = createGLCard(gl);
@@ -979,10 +1171,10 @@
                 return true;
             });
 
-            document.getElementById('cam-panel-count').textContent = `${filteredCam.length} / ${camReadings.length} bản ghi`;
+            document.getElementById('cam-panel-count').textContent = `${filteredCam.length} / ${camReadings.length} records`;
 
             if (filteredCam.length === 0) {
-                camContainer.innerHTML = `<div class="empty-state">Không có bản ghi Camera nào theo bộ lọc này.</div>`;
+                camContainer.innerHTML = `<div class="empty-state">No Camera readings match the current filter.</div>`;
             } else {
                 filteredCam.forEach(c => {
                     const card = createCamCard(c);
@@ -999,17 +1191,39 @@
             const m = gl.match;
             let statusBadge = '';
             let footerExtra = '';
+            let editButtons = '';
+
+            // Calculate camera integer count if matched
+            let camValInt = null;
+            if (m.cam_value) {
+                try {
+                    camValInt = Math.round(parseFloat(m.cam_value) * 1000);
+                } catch(e){}
+            }
 
             if (m.status === 'CORRECT') {
                 statusBadge = `<span class="match-badge correct">✓ CORRECT</span>`;
-                footerExtra = `<span class="delay-tag">+${m.delay_seconds}s sau Neutron</span>`;
+                footerExtra = `<span class="delay-tag">+${m.delay_seconds}s after Neutron</span>`;
             } else if (m.status === 'MISMATCH') {
-                statusBadge = `<span class="match-badge mismatch">⚠ Lệch Số</span>`;
-                footerExtra = `<span style="color: var(--accent-amber);">Cam: ${m.cam_value || '?'}</span>`;
+                statusBadge = `<span class="match-badge mismatch">⚠ MISMATCH</span>`;
+                footerExtra = `<span style="color: var(--accent-amber);">Camera: ${m.cam_value || '?'}</span>`;
+                if (camValInt !== null && camValInt !== gl.count) {
+                    editButtons += `
+                        <button class="btn-quick-match" onclick="quickMatchToCamera(${gl.id}, ${camValInt}, event)" title="Update database count to match camera image">
+                            ⚡ Set to ${camValInt}n
+                        </button>
+                    `;
+                }
             } else {
-                statusBadge = `<span class="match-badge no-cam">Chưa có Camera</span>`;
-                footerExtra = `<span style="color: var(--text-dim);">Không tìm thấy ảnh khớp</span>`;
+                statusBadge = `<span class="match-badge no-cam">No Camera</span>`;
+                footerExtra = `<span style="color: var(--text-dim);">No matching reading</span>`;
             }
+
+            editButtons += `
+                <button class="btn-action-edit" onclick="openEditModal(${gl.id}, ${gl.count}, event)" title="Edit count in database">
+                    ✏️ Edit DB
+                </button>
+            `;
 
             const tempStr = gl.temperature_c !== null ? `${gl.temperature_c}°C` : '--';
             const deadStr = gl.dead_time_s !== null ? `${gl.dead_time_s}s` : '--';
@@ -1022,17 +1236,22 @@
                 <div class="card-row-main">
                     <div class="gl-count-badge">
                         <span>⚛️</span>
-                        <span>${gl.count} Neutron</span>
+                        <span>${gl.count} Neutron${gl.count > 1 ? 's' : ''}</span>
                     </div>
                     <div class="gl-meta">
-                        <span>Nhiệt độ: <b style="color: #cbd5e1;">${tempStr}</b></span>
+                        <span>Temperature: <b style="color: #cbd5e1;">${tempStr}</b></span>
                         <span>Dead time: <b style="color: #cbd5e1;">${deadStr}</b></span>
                     </div>
                 </div>
                 <div class="card-match-footer">
-                    ${statusBadge}
-                    ${footerExtra}
-                    <span class="link-indicator">${m.cam_id !== null ? 'Xem ảnh đối ứng ➔' : ''}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${statusBadge}
+                        ${footerExtra}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation()">
+                        ${editButtons}
+                        <span class="link-indicator">${m.cam_id !== null ? 'View Camera ➔' : ''}</span>
+                    </div>
                 </div>
             `;
 
@@ -1057,11 +1276,11 @@
                 statusBadge = `<span class="match-badge correct">✓ CORRECT</span>`;
                 footerExtra = `<span class="delay-tag">+${m.delay_seconds}s</span>`;
             } else if (m.status === 'MISMATCH') {
-                statusBadge = `<span class="match-badge mismatch">⚠ Lệch Số</span>`;
+                statusBadge = `<span class="match-badge mismatch">⚠ MISMATCH</span>`;
                 footerExtra = `<span style="color: var(--accent-amber);">GL240: ${m.gl_count || '?'}n</span>`;
             } else {
-                statusBadge = `<span class="match-badge extra">Dữ liệu đơn</span>`;
-                footerExtra = `<span style="color: var(--text-dim);">Không có Neutron GL240</span>`;
+                statusBadge = `<span class="match-badge extra">Solo Reading</span>`;
+                footerExtra = `<span style="color: var(--text-dim);">No GL240 Neutron</span>`;
             }
 
             const imgUrl = c.snapshot ? `/snapshots/${c.snapshot}` : '';
@@ -1077,7 +1296,7 @@
                         <span class="cam-lcd-unit">uSv/h</span>
                     </div>
                     ${c.snapshot ? `
-                        <div class="cam-thumb-box" onclick="openModal('${imgUrl}', '${c.timestamp} - ${c.value} uSv/h', event)">
+                        <div class="cam-thumb-box" onclick="openModal('${imgUrl}', '${c.timestamp} - ${c.value} uSv/h', event)" title="Click to view full image">
                             <img src="${imgUrl}" class="cam-thumb-img" alt="Snap" loading="lazy">
                         </div>
                     ` : ''}
@@ -1085,7 +1304,7 @@
                 <div class="card-match-footer">
                     ${statusBadge}
                     ${footerExtra}
-                    <span class="link-indicator">${m.gl_id !== null ? '🡸 Khớp GL240 #' + m.gl_id : ''}</span>
+                    <span class="link-indicator">${m.gl_id !== null ? '🡸 Match GL240 #' + m.gl_id : ''}</span>
                 </div>
             `;
 
@@ -1097,7 +1316,7 @@
             return card;
         }
 
-        // Tương tác ánh sáng và cuộn tự động
+        // Synchronized highlight and smooth scroll
         function highlightPair(glId, camId, origin) {
             if (glId !== null && glId !== undefined) {
                 const glCard = document.getElementById(`gl-card-${glId}`);
@@ -1136,7 +1355,78 @@
             }
         }
 
-        // Modal Preview
+        // Edit GL240 Count in MySQL Database
+        function openEditModal(glId, currentCount, event) {
+            if (event) event.stopPropagation();
+            currentEditingId = glId;
+            document.getElementById('edit-event-id').textContent = `#GL-${glId}`;
+            document.getElementById('edit-count-input').value = currentCount;
+            document.getElementById('edit-count-modal').classList.add('active');
+            setTimeout(() => document.getElementById('edit-count-input').focus(), 100);
+        }
+
+        function closeEditModal(event) {
+            document.getElementById('edit-count-modal').classList.remove('active');
+            currentEditingId = null;
+        }
+
+        function setPresetCount(val) {
+            document.getElementById('edit-count-input').value = val;
+        }
+
+        async function submitEditCount() {
+            if (!currentEditingId) return;
+            const newCount = parseInt(document.getElementById('edit-count-input').value, 10);
+            if (isNaN(newCount) || newCount < 0) {
+                alert('Please enter a valid non-negative integer for neutron count.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/compare/update_gl_count', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentEditingId, count: newCount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeEditModal();
+                    showToast(`Updated GL240 #${currentEditingId} count to ${newCount} in MySQL`);
+                    // Reload comparison data silently
+                    await loadData(true);
+                } else {
+                    alert('Error updating database: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error while updating database: ' + err.message);
+            }
+        }
+
+        async function quickMatchToCamera(glId, targetCount, event) {
+            if (event) event.stopPropagation();
+            if (!confirm(`Update GL240 #${glId} count in MySQL to ${targetCount} to match camera evidence?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/compare/update_gl_count', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: glId, count: targetCount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`GL240 #${glId} count matched to ${targetCount} (Validated Correct)`);
+                    await loadData(true);
+                } else {
+                    alert('Failed to update database: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+
+        // Snapshot Modal Preview
         function openModal(imgUrl, infoText, event) {
             if (event) event.stopPropagation();
             const modal = document.getElementById('image-modal');
@@ -1156,7 +1446,10 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') {
+                closeModal();
+                closeEditModal();
+            }
         });
     </script>
 </body>

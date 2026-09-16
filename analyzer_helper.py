@@ -16,35 +16,35 @@ def is_suspicious_value(val_str, conf_float):
     anomalies = []
     
     if not val_str:
-        return True, ["Thiếu giá trị (Empty)"]
+        return True, ["Empty Value"]
 
-    # Làm sạch chuỗi
+    # Clean string
     clean_val = str(val_str).strip()
 
-    # Kiểm tra số 0.007
+    # Check 7-segment confusion (contains 7)
     if "7" in clean_val:
-        anomalies.append("Nghi vấn 7-segment (chứa số 7)")
+        anomalies.append("Contains '7' (Segment suspect)")
 
-    # Kiểm tra định dạng số thực
+    # Check float format and range
     try:
         fval = float(clean_val)
         if fval <= 0.0:
-            anomalies.append("Giá trị <= 0 (Baseline)")
+            anomalies.append("Value <= 0 (Baseline)")
         elif fval >= 0.010:
-            anomalies.append(f"Giá trị bất thường (Spike: {clean_val})")
+            anomalies.append(f"High Spike ({clean_val})")
         elif fval < 0.001:
-            anomalies.append(f"Giá trị cực nhỏ: {clean_val}")
+            anomalies.append(f"Very Low ({clean_val})")
     except (ValueError, TypeError):
-        anomalies.append(f"Định dạng lỗi: {clean_val}")
+        anomalies.append(f"Format error: {clean_val}")
 
-    # Kiểm tra format chuẩn (dạng X.XXX hoặc X.XX)
+    # Check standard format (X.XXX or X.XX)
     if not re.match(r'^\d+\.\d{2,3}$', clean_val):
-        if "Định dạng lỗi" not in str(anomalies):
-            anomalies.append(f"Format lạ: {clean_val}")
+        if "Format error" not in str(anomalies):
+            anomalies.append(f"Irregular format: {clean_val}")
 
-    # Kiểm tra độ tin cậy
+    # Check OCR confidence
     if conf_float < 60.0:
-        anomalies.append(f"Độ tin cậy thấp ({conf_float:.1f}%)")
+        anomalies.append(f"Low confidence ({conf_float:.1f}%)")
 
     return len(anomalies) > 0, anomalies
 
@@ -152,23 +152,23 @@ def load_date_records(data_dir="data", snapshot_dir="snapshots", date_str=None):
 
                 is_susp, anomalies = is_suspicious_value(val, conf_f)
                 if snap and not file_exists:
-                    anomalies.append("Thiếu file ảnh trên đĩa (Missing JPG)")
+                    anomalies.append("Missing JPG image")
                     is_susp = True
                     stats["missing_images"] += 1
 
-                if any("Giá trị bất thường" in a or "Spike" in a for a in anomalies):
+                if any("Spike" in a or "High" in a or "Giá trị bất thường" in a for a in anomalies):
                     stats["outliers"] += 1
                 if conf_f < 60.0:
                     stats["low_conf"] += 1
                 if "7" in str(val):
                     stats["seven_suspects"] += 1
 
-                # Nếu người dùng đã đánh dấu xác nhận chuẩn, bỏ trạng thái nghi vấn
+                # If user manually marked this as verified / clean
                 if is_verified:
                     is_susp = False
-                    # Giữ cảnh báo thiếu file nếu có, còn lại gắn nhãn chuẩn
-                    anomalies = [a for a in anomalies if "Thiếu file" not in a]
-                    anomalies.insert(0, "✅ Đã xác nhận chuẩn")
+                    # Keep missing file warning if any, but mark verified
+                    anomalies = [a for a in anomalies if "Missing" not in a and "Thiếu file" not in a]
+                    anomalies.insert(0, "✅ Verified Standard")
 
                 if is_susp:
                     stats["suspicious"] += 1
