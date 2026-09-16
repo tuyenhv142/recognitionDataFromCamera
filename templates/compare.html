@@ -1120,6 +1120,11 @@
                 });
 
                 if (dates.length > 0) {
+                    let savedDate = '';
+                    try { savedDate = localStorage.getItem('compare_selected_date'); } catch (e) {}
+                    if (savedDate && dates.includes(savedDate)) {
+                        sel.value = savedDate;
+                    }
                     loadData();
                 }
             } catch (err) {
@@ -1128,6 +1133,7 @@
         }
 
         function onDateChanged() {
+            try { localStorage.setItem('compare_selected_date', document.getElementById('date-select').value); } catch (e) {}
             loadData();
         }
 

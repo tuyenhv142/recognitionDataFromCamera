@@ -1127,14 +1127,17 @@
                     sel.appendChild(opt);
                 });
 
-                // Prioritize date with most records or 2026-09-15
+                // Load previously selected date from localStorage or fallback to latest date
+                let savedDate = '';
+                try { savedDate = localStorage.getItem('analyzer_selected_date'); } catch (e) {}
+
                 let targetDate = dates[0].date;
-                const date15 = dates.find(d => d.date === '2026-09-15');
-                if (date15) {
-                    targetDate = date15.date;
+                if (savedDate && dates.some(d => d.date === savedDate)) {
+                    targetDate = savedDate;
                 }
                 sel.value = targetDate;
                 currentDate = targetDate;
+                try { localStorage.setItem('analyzer_selected_date', targetDate); } catch (e) {}
                 setGridSize(currentGridSize);
                 loadRecords(currentDate);
 
@@ -1182,6 +1185,7 @@
 
         function onDateChange(newDate) {
             currentDate = newDate;
+            try { localStorage.setItem('analyzer_selected_date', newDate); } catch (e) {}
             loadRecords(currentDate);
         }
 
