@@ -29,6 +29,7 @@ from analyzer_helper import (
     mark_records_clean,
     sync_csv_with_disk
 )
+import gl240_comparator
 
 app = Flask(__name__)
 
@@ -269,6 +270,41 @@ def update_settings_endpoint():
 @app.route('/analyzer')
 def analyzer_page():
     return render_template('analyzer.html', settings=settings)
+
+@app.route('/compare')
+def compare_page():
+    return render_template('compare.html', settings=settings)
+
+@app.route('/api/compare/dates')
+def api_compare_dates():
+    data_dir = settings.get("data_dir", "data")
+    dates = gl240_comparator.get_available_compare_dates(data_dir=data_dir)
+    return jsonify(dates)
+
+@app.route('/api/compare/data')
+def api_compare_data():
+    date_str = request.args.get("date")
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        min_delay = float(request.args.get("min_delay", 15.0))
+    except (ValueError, TypeError):
+        min_delay = 15.0
+
+    try:
+        max_delay = float(request.args.get("max_delay", 95.0))
+    except (ValueError, TypeError):
+        max_delay = 95.0
+
+    data_dir = settings.get("data_dir", "data")
+    result = gl240_comparator.compare_neutron_and_camera(
+        date_str=date_str,
+        data_dir=data_dir,
+        min_delay=min_delay,
+        max_delay=max_delay
+    )
+    return jsonify(result)
 
 @app.route('/api/analyzer/dates')
 def api_analyzer_dates():

@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>So Sánh Đối Chiếu GL240 Neutron & Camera OCR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0f1d;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(0, 242, 254, 0.4);
+            
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-emerald: #10b981;
+            --accent-green: #38ef7d;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #a855f7;
+
+            --lcd-color: #38ef7d;
+            --lcd-bg: #06150e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.04) 0%, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1700px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            flex: 1;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 16px 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            font-size: 1.8rem;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #031b2e;
+            box-shadow: 0 4px 14px rgba(0, 242, 254, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+
+        /* Controls Bar */
+        .controls-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .control-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        select, input[type="number"] {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-pill {
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+        }
+
+        .filter-pill.active {
+            background: var(--accent-cyan);
+            color: #031b2e;
+            box-shadow: 0 2px 8px rgba(0, 242, 254, 0.3);
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* KPI Stat Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--card-accent, var(--accent-cyan));
+        }
+
+        .stat-title {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text-main);
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .stat-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .stat-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .stat-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #00f2fe);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        /* Split-Screen Main Container */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            flex: 1;
+            min-height: 560px;
+        }
+
+        @media (max-width: 1024px) {
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .panel-badge {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .panel-body {
+            padding: 14px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(100vh - 340px);
+            min-height: 480px;
+        }
+
+        /* Custom Scrollbars */
+        .panel-body::-webkit-scrollbar {
+            width: 7px;
+        }
+        .panel-body::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .panel-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+        }
+        .panel-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 242, 254, 0.3);
+        }
+
+        /* Item Cards */
+        .record-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 14px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .record-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        /* Co-highlighting effects */
+        .record-card.highlight-source {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.35) !important;
+            background: rgba(0, 242, 254, 0.08) !important;
+        }
+
+        .record-card.highlight-target {
+            border-color: var(--accent-green) !important;
+            box-shadow: 0 0 16px rgba(56, 239, 125, 0.35) !important;
+            background: rgba(56, 239, 125, 0.08) !important;
+        }
+
+        .card-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-time {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-id {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .card-row-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gl-count-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #34d399;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gl-meta {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cam-lcd-box {
+            background: var(--lcd-bg);
+            border: 1px solid rgba(56, 239, 125, 0.25);
+            border-radius: 8px;
+            padding: 5px 12px;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        .cam-lcd-val {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--lcd-color);
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 10px rgba(56, 239, 125, 0.5);
+        }
+
+        .cam-lcd-unit {
+            font-size: 0.72rem;
+            color: #059669;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .cam-thumb-box {
+            position: relative;
+            width: 72px;
+            height: 44px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .cam-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+
+        .cam-thumb-box:hover .cam-thumb-img {
+            transform: scale(1.1);
+        }
+
+        /* Correlation Footer */
+        .card-match-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.76rem;
+        }
+
+        .match-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .match-badge.correct {
+            background: rgba(16, 185, 129, 0.16);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .match-badge.mismatch {
+            background: rgba(245, 158, 11, 0.16);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .match-badge.no-cam, .match-badge.extra {
+            background: rgba(148, 163, 184, 0.12);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .delay-tag {
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .link-indicator {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .record-card:hover .link-indicator {
+            color: var(--accent-cyan);
+        }
+
+        /* Modal Preview */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 680px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-img-container {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        /* Empty / Loading State */
+        .loading-state, .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            gap: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(0, 242, 254, 0.15);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <div class="brand-icon">⚛️</div>
+                <div>
+                    <h1>ĐỐI CHIẾU NEUTRON GL240 & CAMERA OCR</h1>
+                    <p>So sánh tương quan giữa xung Neutron đếm được trên GL240 và chỉ số bức xạ trên Camera</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary">
+                    <span>📹</span> Live Camera
+                </a>
+                <a href="/analyzer" class="btn btn-secondary">
+                    <span>🔍</span> Phân Tích Snapshot
+                </a>
+                <button id="btn-refresh" class="btn btn-primary" onclick="loadData()">
+                    <span>🔄</span> Làm Mới
+                </button>
+            </div>
+        </header>
+
+        <!-- Controls & Parameter Settings -->
+        <div class="controls-card">
+            <div class="control-group">
+                <div class="control-label">Ngày Quan Sát:</div>
+                <select id="date-select" onchange="onDateChanged()"></select>
+
+                <div class="control-label" style="margin-left: 12px;">Độ Trễ Hợp Lệ (s):</div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <input type="number" id="min-delay-input" value="15" min="0" max="180" style="width: 65px;" title="Độ trễ tối thiểu (giây)" onchange="loadData()">
+                    <span style="color: var(--text-dim);">-</span>
+                    <input type="number" id="max-delay-input" value="95" min="10" max="300" style="width: 65px;" title="Độ trễ tối đa (giây)" onchange="loadData()">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">(Khoảng 30s - 90s)</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="filter-pills">
+                    <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">Tất Cả</button>
+                    <button class="filter-pill" data-filter="correct" onclick="setFilter('correct')">✓ Chỉ Khớp Chuẩn</button>
+                    <button class="filter-pill" data-filter="unmatched" onclick="setFilter('unmatched')">⚠ Lệch / Chưa Khớp</button>
+                </div>
+
+                <div class="live-badge" id="live-indicator" style="cursor: pointer;" onclick="toggleAutoSync()">
+                    <span class="live-dot" id="live-dot"></span>
+                    <span id="live-text">Live Sync (5s)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary KPIs -->
+        <div class="stats-grid">
+            <div class="stat-card" style="--card-accent: var(--accent-cyan);">
+                <div class="stat-title">Sự Kiện Neutron GL240</div>
+                <div class="stat-value" id="kpi-gl-events">0</div>
+                <div class="stat-sub" id="kpi-gl-total-neutrons">Tổng số hạt: 0</div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-blue);">
+                <div class="stat-title">Bản Ghi Nhận Diện Camera</div>
+                <div class="stat-value" id="kpi-cam-readings">0</div>
+                <div class="stat-sub" id="kpi-cam-sub">Đã lưu trong CSV</div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-green);">
+                <div class="stat-title">Khớp Chuẩn (CORRECT)</div>
+                <div class="stat-value" id="kpi-correct-matches" style="color: var(--accent-green);">
+                    0 <span style="font-size: 1rem; color: var(--text-muted);" id="kpi-correct-pct">(0%)</span>
+                </div>
+                <div class="stat-progress">
+                    <div class="stat-progress-bar" id="kpi-progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-purple);">
+                <div class="stat-title">Độ Trễ Trung Bình (Δt)</div>
+                <div class="stat-value" id="kpi-avg-delay">0.0<span style="font-size: 1rem; color: var(--text-muted);">s</span></div>
+                <div class="stat-sub">Khoảng cách Neutron xuất hiện -> Camera chụp</div>
+            </div>
+        </div>
+
+        <!-- Split-Screen View -->
+        <div class="split-view">
+            <!-- Left: GL240 Neutron Events -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>⚡</span>
+                        <span>Bảng GL240 (neutron_counts)</span>
+                    </div>
+                    <span class="panel-badge" id="gl-panel-count">0 sự kiện</span>
+                </div>
+                <div class="panel-body" id="gl-list">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <span>Đang tải dữ liệu GL240...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Camera OCR Readings -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>📷</span>
+                        <span>Camera OCR & Ảnh Chụp</span>
+                    </div>
+                    <span class="panel-badge" id="cam-panel-count">0 bản ghi</span>
+                </div>
+                <div class="panel-body" id="cam-list">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <span>Đang nạp dữ liệu Camera...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snapshot Modal Preview -->
+    <div class="modal" id="image-modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modal-title" style="font-size: 1.1rem; font-weight: 700;">Ảnh Snapshot Camera</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-img-container">
+                <img id="modal-img" class="modal-img" src="" alt="Snapshot">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div id="modal-info" style="font-size: 0.85rem; color: var(--text-muted); font-family: 'Share Tech Mono', monospace;"></div>
+                <a id="modal-download" href="" download class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
+                    <span>⬇</span> Tải Ảnh
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        let comparisonData = null;
+        let autoSyncTimer = null;
+        let isAutoSync = true;
+
+        // Khởi động trang
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDates();
+            startAutoSync();
+        });
+
+        function toggleAutoSync() {
+            isAutoSync = !isAutoSync;
+            const dot = document.getElementById('live-dot');
+            const text = document.getElementById('live-text');
+            if (isAutoSync) {
+                dot.style.display = 'inline-block';
+                text.textContent = 'Live Sync (5s)';
+                startAutoSync();
+            } else {
+                dot.style.display = 'none';
+                text.textContent = 'Sync Tắt';
+                if (autoSyncTimer) clearInterval(autoSyncTimer);
+            }
+        }
+
+        function startAutoSync() {
+            if (autoSyncTimer) clearInterval(autoSyncTimer);
+            autoSyncTimer = setInterval(() => {
+                const dateSelect = document.getElementById('date-select');
+                const todayStr = new Date().toISOString().split('T')[0];
+                // Chỉ auto-sync nếu đang xem ngày hôm nay
+                if (isAutoSync && dateSelect.value === todayStr) {
+                    loadData(true);
+                }
+            }, 5000);
+        }
+
+        async function fetchDates() {
+            try {
+                const res = await fetch('/api/compare/dates');
+                const dates = await res.json();
+                const sel = document.getElementById('date-select');
+                sel.innerHTML = '';
+                
+                dates.forEach((d, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d + (idx === 0 ? ' (Mới nhất)' : '');
+                    sel.appendChild(opt);
+                });
+
+                if (dates.length > 0) {
+                    loadData();
+                }
+            } catch (err) {
+                console.error('Lỗi nạp danh sách ngày:', err);
+            }
+        }
+
+        function onDateChanged() {
+            loadData();
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-pill').forEach(p => {
+                p.classList.toggle('active', p.getAttribute('data-filter') === filterType);
+            });
+            renderLists();
+        }
+
+        async function loadData(silent = false) {
+            const dateStr = document.getElementById('date-select').value;
+            if (!dateStr) return;
+
+            const minDelay = document.getElementById('min-delay-input').value || 15;
+            const maxDelay = document.getElementById('max-delay-input').value || 95;
+
+            if (!silent) {
+                document.getElementById('gl-list').innerHTML = `
+                    <div class="loading-state"><div class="spinner"></div><span>Đang đối chiếu dữ liệu...</span></div>
+                `;
+                document.getElementById('cam-list').innerHTML = `
+                    <div class="loading-state"><div class="spinner"></div><span>Đang đối chiếu dữ liệu...</span></div>
+                `;
+            }
+
+            try {
+                const res = await fetch(`/api/compare/data?date=${dateStr}&min_delay=${minDelay}&max_delay=${maxDelay}`);
+                const data = await res.json();
+                if (data.success) {
+                    comparisonData = data;
+                    updateKPIs(data.summary);
+                    renderLists();
+                }
+            } catch (err) {
+                console.error('Lỗi nạp dữ liệu so sánh:', err);
+            }
+        }
+
+        function updateKPIs(summary) {
+            document.getElementById('kpi-gl-events').textContent = summary.total_gl_events;
+            document.getElementById('kpi-gl-total-neutrons').textContent = `Tổng số hạt: ${summary.total_gl_neutrons}`;
+            document.getElementById('kpi-cam-readings').textContent = summary.total_camera_readings;
+            document.getElementById('kpi-correct-matches').innerHTML = `
+                ${summary.correct_matches} <span style="font-size: 1rem; color: var(--text-muted);">(${summary.accuracy_percent}%)</span>
+            `;
+            document.getElementById('kpi-progress-bar').style.width = `${summary.accuracy_percent}%`;
+            document.getElementById('kpi-avg-delay').innerHTML = `
+                ${summary.avg_delay_seconds}<span style="font-size: 1rem; color: var(--text-muted);">s</span>
+            `;
+        }
+
+        function renderLists() {
+            if (!comparisonData) return;
+
+            const glEvents = comparisonData.gl_events || [];
+            const camReadings = comparisonData.camera_readings || [];
+
+            // 1. Render GL240 List
+            const glContainer = document.getElementById('gl-list');
+            glContainer.innerHTML = '';
+
+            let filteredGl = glEvents.filter(item => {
+                if (currentFilter === 'correct') return item.match.status === 'CORRECT';
+                if (currentFilter === 'unmatched') return item.match.status !== 'CORRECT';
+                return true;
+            });
+
+            document.getElementById('gl-panel-count').textContent = `${filteredGl.length} / ${glEvents.length} sự kiện`;
+
+            if (filteredGl.length === 0) {
+                glContainer.innerHTML = `<div class="empty-state">Không có sự kiện Neutron nào theo bộ lọc này.</div>`;
+            } else {
+                filteredGl.forEach(gl => {
+                    const card = createGLCard(gl);
+                    glContainer.appendChild(card);
+                });
+            }
+
+            // 2. Render Camera List
+            const camContainer = document.getElementById('cam-list');
+            camContainer.innerHTML = '';
+
+            let filteredCam = camReadings.filter(item => {
+                if (currentFilter === 'correct') return item.match.status === 'CORRECT';
+                if (currentFilter === 'unmatched') return item.match.status !== 'CORRECT';
+                return true;
+            });
+
+            document.getElementById('cam-panel-count').textContent = `${filteredCam.length} / ${camReadings.length} bản ghi`;
+
+            if (filteredCam.length === 0) {
+                camContainer.innerHTML = `<div class="empty-state">Không có bản ghi Camera nào theo bộ lọc này.</div>`;
+            } else {
+                filteredCam.forEach(c => {
+                    const card = createCamCard(c);
+                    camContainer.appendChild(card);
+                });
+            }
+        }
+
+        function createGLCard(gl) {
+            const card = document.createElement('div');
+            card.className = 'record-card';
+            card.id = `gl-card-${gl.id}`;
+
+            const m = gl.match;
+            let statusBadge = '';
+            let footerExtra = '';
+
+            if (m.status === 'CORRECT') {
+                statusBadge = `<span class="match-badge correct">✓ CORRECT</span>`;
+                footerExtra = `<span class="delay-tag">+${m.delay_seconds}s sau Neutron</span>`;
+            } else if (m.status === 'MISMATCH') {
+                statusBadge = `<span class="match-badge mismatch">⚠ Lệch Số</span>`;
+                footerExtra = `<span style="color: var(--accent-amber);">Cam: ${m.cam_value || '?'}</span>`;
+            } else {
+                statusBadge = `<span class="match-badge no-cam">Chưa có Camera</span>`;
+                footerExtra = `<span style="color: var(--text-dim);">Không tìm thấy ảnh khớp</span>`;
+            }
+
+            const tempStr = gl.temperature_c !== null ? `${gl.temperature_c}°C` : '--';
+            const deadStr = gl.dead_time_s !== null ? `${gl.dead_time_s}s` : '--';
+
+            card.innerHTML = `
+                <div class="card-row-top">
+                    <span class="card-time">⏱ ${gl.time_display} <span style="font-size: 0.76rem; color: var(--text-dim); font-weight: 400;">(${gl.duration_seconds}s)</span></span>
+                    <span class="card-id">#GL-${gl.id}</span>
+                </div>
+                <div class="card-row-main">
+                    <div class="gl-count-badge">
+                        <span>⚛️</span>
+                        <span>${gl.count} Neutron</span>
+                    </div>
+                    <div class="gl-meta">
+                        <span>Nhiệt độ: <b style="color: #cbd5e1;">${tempStr}</b></span>
+                        <span>Dead time: <b style="color: #cbd5e1;">${deadStr}</b></span>
+                    </div>
+                </div>
+                <div class="card-match-footer">
+                    ${statusBadge}
+                    ${footerExtra}
+                    <span class="link-indicator">${m.cam_id !== null ? 'Xem ảnh đối ứng ➔' : ''}</span>
+                </div>
+            `;
+
+            // Hover & Click interaction
+            card.addEventListener('mouseenter', () => highlightPair(gl.id, m.cam_id, 'gl'));
+            card.addEventListener('mouseleave', () => unhighlightPair(gl.id, m.cam_id));
+            card.addEventListener('click', () => focusPair(gl.id, m.cam_id, 'gl'));
+
+            return card;
+        }
+
+        function createCamCard(c) {
+            const card = document.createElement('div');
+            card.className = 'record-card';
+            card.id = `cam-card-${c.cam_id}`;
+
+            const m = c.match;
+            let statusBadge = '';
+            let footerExtra = '';
+
+            if (m.status === 'CORRECT') {
+                statusBadge = `<span class="match-badge correct">✓ CORRECT</span>`;
+                footerExtra = `<span class="delay-tag">+${m.delay_seconds}s</span>`;
+            } else if (m.status === 'MISMATCH') {
+                statusBadge = `<span class="match-badge mismatch">⚠ Lệch Số</span>`;
+                footerExtra = `<span style="color: var(--accent-amber);">GL240: ${m.gl_count || '?'}n</span>`;
+            } else {
+                statusBadge = `<span class="match-badge extra">Dữ liệu đơn</span>`;
+                footerExtra = `<span style="color: var(--text-dim);">Không có Neutron GL240</span>`;
+            }
+
+            const imgUrl = c.snapshot ? `/snapshots/${c.snapshot}` : '';
+
+            card.innerHTML = `
+                <div class="card-row-top">
+                    <span class="card-time">📷 ${c.time_display}</span>
+                    <span class="card-id" style="color: var(--accent-cyan);">Conf: ${c.confidence}</span>
+                </div>
+                <div class="card-row-main">
+                    <div class="cam-lcd-box">
+                        <span class="cam-lcd-val">${c.value}</span>
+                        <span class="cam-lcd-unit">uSv/h</span>
+                    </div>
+                    ${c.snapshot ? `
+                        <div class="cam-thumb-box" onclick="openModal('${imgUrl}', '${c.timestamp} - ${c.value} uSv/h', event)">
+                            <img src="${imgUrl}" class="cam-thumb-img" alt="Snap" loading="lazy">
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="card-match-footer">
+                    ${statusBadge}
+                    ${footerExtra}
+                    <span class="link-indicator">${m.gl_id !== null ? '🡸 Khớp GL240 #' + m.gl_id : ''}</span>
+                </div>
+            `;
+
+            // Hover & Click interaction
+            card.addEventListener('mouseenter', () => highlightPair(m.gl_id, c.cam_id, 'cam'));
+            card.addEventListener('mouseleave', () => unhighlightPair(m.gl_id, c.cam_id));
+            card.addEventListener('click', () => focusPair(m.gl_id, c.cam_id, 'cam'));
+
+            return card;
+        }
+
+        // Tương tác ánh sáng và cuộn tự động
+        function highlightPair(glId, camId, origin) {
+            if (glId !== null && glId !== undefined) {
+                const glCard = document.getElementById(`gl-card-${glId}`);
+                if (glCard) glCard.classList.add(origin === 'gl' ? 'highlight-source' : 'highlight-target');
+            }
+            if (camId !== null && camId !== undefined) {
+                const camCard = document.getElementById(`cam-card-${camId}`);
+                if (camCard) camCard.classList.add(origin === 'cam' ? 'highlight-source' : 'highlight-target');
+            }
+        }
+
+        function unhighlightPair(glId, camId) {
+            if (glId !== null && glId !== undefined) {
+                const glCard = document.getElementById(`gl-card-${glId}`);
+                if (glCard) glCard.classList.remove('highlight-source', 'highlight-target');
+            }
+            if (camId !== null && camId !== undefined) {
+                const camCard = document.getElementById(`cam-card-${camId}`);
+                if (camCard) camCard.classList.remove('highlight-source', 'highlight-target');
+            }
+        }
+
+        function focusPair(glId, camId, origin) {
+            highlightPair(glId, camId, origin);
+
+            if (origin === 'gl' && camId !== null && camId !== undefined) {
+                const camCard = document.getElementById(`cam-card-${camId}`);
+                if (camCard) {
+                    camCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else if (origin === 'cam' && glId !== null && glId !== undefined) {
+                const glCard = document.getElementById(`gl-card-${glId}`);
+                if (glCard) {
+                    glCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // Modal Preview
+        function openModal(imgUrl, infoText, event) {
+            if (event) event.stopPropagation();
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalInfo = document.getElementById('modal-info');
+            const modalDownload = document.getElementById('modal-download');
+
+            modalImg.src = imgUrl;
+            modalInfo.textContent = infoText;
+            modalDownload.href = imgUrl;
+            modal.classList.add('active');
+        }
+
+        function closeModal(event) {
+            const modal = document.getElementById('image-modal');
+            modal.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
