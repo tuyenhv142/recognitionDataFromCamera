@@ -324,6 +324,32 @@ def api_compare_update_gl_count():
     success = gl240_comparator.update_gl240_count(record_id, new_count)
     return jsonify({"success": success, "id": record_id, "count": new_count})
 
+@app.route('/api/compare/delete_camera_record', methods=['POST'])
+def api_compare_delete_camera_record():
+    """Delete a specific camera OCR row from CSV and remove its snapshot image."""
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    timestamp = data.get("timestamp")
+    snapshot = data.get("snapshot")
+    if not date_str or (not timestamp and not snapshot):
+        return jsonify({"success": False, "error": "Missing date, timestamp or snapshot"}), 400
+
+    timestamps = [timestamp] if timestamp else []
+    snapshots = [snapshot] if snapshot else []
+    delete_files = bool(data.get("delete_files", True))
+    data_dir = settings.get("data_dir", "data")
+    snap_dir = settings.get("snapshot_dir", "snapshots")
+
+    count = delete_date_records(data_dir, snap_dir, date_str, timestamps, snapshots, delete_files)
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if date_str == today_str:
+        logger.delete_records(timestamps=timestamps, snapshots=snapshots, delete_snapshot_file=False)
+        with app_state["lock"]:
+            app_state["reset_trigger"] = True
+
+    return jsonify({"success": True, "deleted_count": count})
+
 @app.route('/api/analyzer/dates')
 def api_analyzer_dates():
     data_dir = settings.get("data_dir", "data")

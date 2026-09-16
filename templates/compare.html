@@ -229,6 +229,28 @@
             border-color: var(--accent-green);
         }
 
+        .btn-action-del {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 4px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action-del:hover {
+            background: rgba(239, 68, 68, 0.28);
+            border-color: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+        }
+
         /* Controls Bar */
         .controls-card {
             background: var(--bg-card);
@@ -953,11 +975,16 @@
             <div class="modal-img-container">
                 <img id="modal-img" class="modal-img" src="" alt="Snapshot">
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <div id="modal-info" style="font-size: 0.85rem; color: var(--text-muted); font-family: 'Share Tech Mono', monospace;"></div>
-                <a id="modal-download" href="" download class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
-                    <span>⬇</span> Download Image
-                </a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="modal-btn-del" class="btn-action-del" style="padding: 6px 14px; font-size: 0.8rem;" onclick="deleteModalCameraRecord()">
+                        🗑️ Delete CSV Record
+                    </button>
+                    <a id="modal-download" href="" download class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
+                        <span>⬇</span> Download Image
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -1296,15 +1323,22 @@
                         <span class="cam-lcd-unit">uSv/h</span>
                     </div>
                     ${c.snapshot ? `
-                        <div class="cam-thumb-box" onclick="openModal('${imgUrl}', '${c.timestamp} - ${c.value} uSv/h', event)" title="Click to view full image">
+                        <div class="cam-thumb-box" onclick="openModal('${imgUrl}', '${c.timestamp} - ${c.value} uSv/h', '${c.timestamp}', '${c.snapshot}', '${c.value}', event)" title="Click to view full image">
                             <img src="${imgUrl}" class="cam-thumb-img" alt="Snap" loading="lazy">
                         </div>
                     ` : ''}
                 </div>
                 <div class="card-match-footer">
-                    ${statusBadge}
-                    ${footerExtra}
-                    <span class="link-indicator">${m.gl_id !== null ? '🡸 Match GL240 #' + m.gl_id : ''}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${statusBadge}
+                        ${footerExtra}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation()">
+                        <button class="btn-action-del" onclick="deleteCameraRecord('${c.timestamp}', '${c.snapshot || ''}', '${c.value}', event)" title="Delete this record from CSV file and remove image">
+                            🗑️ Delete CSV
+                        </button>
+                        <span class="link-indicator">${m.gl_id !== null ? '🡸 Match GL240 #' + m.gl_id : ''}</span>
+                    </div>
                 </div>
             `;
 
@@ -1426,9 +1460,12 @@
             }
         }
 
+        let activeModalCam = { timestamp: '', snapshot: '', value: '' };
+
         // Snapshot Modal Preview
-        function openModal(imgUrl, infoText, event) {
+        function openModal(imgUrl, infoText, timestamp, snapshot, value, event) {
             if (event) event.stopPropagation();
+            activeModalCam = { timestamp: timestamp || '', snapshot: snapshot || '', value: value || '' };
             const modal = document.getElementById('image-modal');
             const modalImg = document.getElementById('modal-img');
             const modalInfo = document.getElementById('modal-info');
@@ -1438,6 +1475,45 @@
             modalInfo.textContent = infoText;
             modalDownload.href = imgUrl;
             modal.classList.add('active');
+        }
+
+        async function deleteCameraRecord(timestamp, snapshot, value, event) {
+            if (event) event.stopPropagation();
+            const dateStr = document.getElementById('date-select').value;
+            if (!confirm(`Delete record "${value} uSv/h" at [${timestamp}] from readings_${dateStr}.csv and remove image?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/compare/delete_camera_record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: dateStr,
+                        timestamp: timestamp,
+                        snapshot: snapshot,
+                        delete_files: true
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Deleted CSV row [${timestamp}]`);
+                    await loadData(true);
+                } else {
+                    alert('Error deleting record: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+
+        async function deleteModalCameraRecord() {
+            if (!activeModalCam.timestamp && !activeModalCam.snapshot) return;
+            const ts = activeModalCam.timestamp;
+            const snap = activeModalCam.snapshot;
+            const val = activeModalCam.value;
+            closeModal();
+            await deleteCameraRecord(ts, snap, val);
         }
 
         function closeModal(event) {
