@@ -62,21 +62,31 @@ class LCDReader:
         try:
             h, w = crop.shape[:2]
             gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) if len(crop.shape) == 3 else crop
-            # Vùng tọa độ ngang của thanh trên cùng (segment a) cho 4 chữ số:
+            
+            # Vùng tọa độ ngang của thanh trên cùng (segment a) căn chuẩn cho 4 chữ số:
             slot_x_ranges = [
-                (int(w * 0.09), int(w * 0.19)),
-                (int(w * 0.33), int(w * 0.43)),
-                (int(w * 0.56), int(w * 0.66)),
-                (int(w * 0.74), int(w * 0.84))
+                (int(w * 0.08), int(w * 0.18)),
+                (int(w * 0.32), int(w * 0.42)),
+                (int(w * 0.55), int(w * 0.65)),
+                (int(w * 0.75), int(w * 0.85))
             ]
-            y1 = max(0, int(h * 0.12))
+            y1 = max(0, int(h * 0.10))
             y2 = min(h, int(h * 0.30))
+
+            p10 = np.percentile(gray, 10)
+            p90 = np.percentile(gray, 90)
+            # Ngưỡng nét hiển thị (active segment) thích ứng theo ánh sáng thực tế
+            seg_threshold = p10 + (p90 - p10) * 0.40
+
             digits = [c for c in val_str if c.isdigit()]
             if len(digits) != 4:
                 if val_str.endswith('7'):
-                    box = gray[y1:y2, int(w * 0.74):int(w * 0.84)]
-                    if box.size > 0 and (np.min(box) >= 105 or np.mean(box) >= 135):
-                        return val_str[:-1] + '1'
+                    box = gray[y1:y2, int(w * 0.75):int(w * 0.85)]
+                    if box.size > 0:
+                        min_p = np.min(box)
+                        mean_p = np.mean(box)
+                        if min_p > seg_threshold or min_p >= 68 or mean_p >= 125:
+                            return val_str[:-1] + '1'
                 return val_str
 
             new_digits = list(digits)
@@ -87,10 +97,11 @@ class LCDReader:
                     if box.size > 0:
                         min_pixel = np.min(box)
                         mean_pixel = np.mean(box)
-                        # Nếu thanh trên cùng là nền sáng (không có nét hiển thị), đây là số 1
-                        if min_pixel >= 105 or mean_pixel >= 135:
+                        # Nếu thanh trên cùng là nền sáng (không có nét hiển thị active), đây là số 1
+                        if min_pixel > seg_threshold or min_pixel >= 68 or mean_pixel >= 125:
                             new_digits[idx] = '1'
-            return f"{new_digits[0]}.{''.join(new_digits[1:])}"
+            rem = ''.join(new_digits[1:])
+            return f"{new_digits[0]}.{rem}"
         except Exception:
             return val_str
 
