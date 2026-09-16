@@ -889,6 +889,10 @@
                     <button class="filter-pill" data-filter="unmatched" onclick="setFilter('unmatched')">⚠ Mismatches / Unmatched</button>
                 </div>
 
+                <button id="btn-sort-time" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 10px;" onclick="toggleSortOrder()" title="Click to toggle time order: Newest first or Oldest first">
+                    <span id="sort-order-label">⬇️ Newest first</span>
+                </button>
+
                 <div class="live-badge" id="live-indicator" style="cursor: pointer;" onclick="toggleAutoSync()">
                     <span class="live-dot" id="live-dot"></span>
                     <span id="live-text">Live Sync (5s)</span>
@@ -1042,12 +1046,28 @@
         let autoSyncTimer = null;
         let isAutoSync = true;
         let currentEditingId = null;
+        let currentSort = localStorage.getItem('compare_sort') || 'desc';
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
+            updateSortUI();
             fetchDates();
             startAutoSync();
         });
+
+        function toggleSortOrder() {
+            currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+            try { localStorage.setItem('compare_sort', currentSort); } catch (e) {}
+            updateSortUI();
+            renderLists();
+        }
+
+        function updateSortUI() {
+            const lbl = document.getElementById('sort-order-label');
+            if (lbl) {
+                lbl.innerText = currentSort === 'desc' ? '⬇️ Newest first' : '⬆️ Oldest first';
+            }
+        }
 
         function showToast(msg, icon = '✓') {
             const toast = document.getElementById('toast');
@@ -1177,6 +1197,12 @@
                 return true;
             });
 
+            // Sort GL240 events chronologically according to currentSort
+            filteredGl.sort((a, b) => {
+                const cmp = (a.bucket_start || '').localeCompare(b.bucket_start || '');
+                return currentSort === 'desc' ? -cmp : cmp;
+            });
+
             document.getElementById('gl-panel-count').textContent = `${filteredGl.length} / ${glEvents.length} events`;
 
             if (filteredGl.length === 0) {
@@ -1196,6 +1222,12 @@
                 if (currentFilter === 'correct') return item.match.status === 'CORRECT';
                 if (currentFilter === 'unmatched') return item.match.status !== 'CORRECT';
                 return true;
+            });
+
+            // Sort Camera readings chronologically according to currentSort
+            filteredCam.sort((a, b) => {
+                const cmp = (a.timestamp || '').localeCompare(b.timestamp || '');
+                return currentSort === 'desc' ? -cmp : cmp;
             });
 
             document.getElementById('cam-panel-count').textContent = `${filteredCam.length} / ${camReadings.length} records`;

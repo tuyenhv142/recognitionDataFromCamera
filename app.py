@@ -32,6 +32,7 @@ from analyzer_helper import (
 import gl240_comparator
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Khởi tạo các thành phần hệ thống
 settings = load_settings()
