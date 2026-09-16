@@ -78,6 +78,8 @@ def get_available_dates(data_dir="data", snapshot_dir="snapshots"):
                     val = row[1] if len(row) > 1 else ""
                     conf_raw = row[2] if len(row) > 2 else "0"
                     snap = row[3] if len(row) > 3 else ""
+                    status = (row[4] if len(row) > 4 else "OK").strip().upper()
+                    is_verified = (status in ["VERIFIED", "CLEAN"])
 
                     try:
                         conf_f = float(str(conf_raw).replace("%", "").strip())
@@ -89,7 +91,7 @@ def get_available_dates(data_dir="data", snapshot_dir="snapshots"):
                         snap_count += 1
 
                     is_susp, _ = is_suspicious_value(val, conf_f)
-                    if is_susp or (snap and not has_file):
+                    if not is_verified and (is_susp or (snap and not has_file)):
                         suspicious_count += 1
         except Exception as e:
             print(f"Error reading {fp}: {e}")
@@ -138,7 +140,8 @@ def load_date_records(data_dir="data", snapshot_dir="snapshots", date_str=None):
                 val = row[1]
                 conf_raw = row[2]
                 snap = row[3] if len(row) > 3 else ""
-                status = row[4] if len(row) > 4 else "OK"
+                status = (row[4] if len(row) > 4 else "OK").strip().upper()
+                is_verified = (status in ["VERIFIED", "CLEAN"])
 
                 try:
                     conf_f = float(str(conf_raw).replace("%", "").strip())
@@ -160,6 +163,13 @@ def load_date_records(data_dir="data", snapshot_dir="snapshots", date_str=None):
                 if "7" in str(val):
                     stats["seven_suspects"] += 1
 
+                # Nếu người dùng đã đánh dấu xác nhận chuẩn, bỏ trạng thái nghi vấn
+                if is_verified:
+                    is_susp = False
+                    # Giữ cảnh báo thiếu file nếu có, còn lại gắn nhãn chuẩn
+                    anomalies = [a for a in anomalies if "Thiếu file" not in a]
+                    anomalies.insert(0, "✅ Đã xác nhận chuẩn")
+
                 if is_susp:
                     stats["suspicious"] += 1
                 else:
@@ -175,6 +185,7 @@ def load_date_records(data_dir="data", snapshot_dir="snapshots", date_str=None):
                     "snapshot": snap,
                     "file_exists": file_exists,
                     "status": status,
+                    "is_verified": is_verified,
                     "is_suspicious": is_susp,
                     "anomalies": anomalies
                 })
@@ -266,6 +277,44 @@ def update_record_value(data_dir="data", date_str=None, timestamp=None, new_valu
                 writer.writerow(r)
 
     return updated
+
+def mark_records_clean(data_dir="data", date_str=None, timestamps=None, is_clean=True):
+    """
+    Đánh dấu danh sách bản ghi là chuẩn (Status = 'VERIFIED') hoặc bỏ chuẩn (Status = 'OK').
+    """
+    if not date_str or not timestamps:
+        return 0
+
+    csv_path = os.path.join(data_dir, f"readings_{date_str}.csv")
+    if not os.path.exists(csv_path):
+        return 0
+
+    ts_set = set(timestamps)
+    new_status = "VERIFIED" if is_clean else "OK"
+    updated_count = 0
+    all_rows = []
+
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        header = next(reader, None)
+        for row in reader:
+            if not row or len(row) < 4:
+                continue
+            while len(row) < 5:
+                row.append("OK")
+            if row[0] in ts_set:
+                row[4] = new_status
+                updated_count += 1
+            all_rows.append(row)
+
+    if updated_count > 0:
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Timestamp", "Value", "Confidence", "Snapshot", "Status"])
+            for r in all_rows:
+                writer.writerow(r)
+
+    return updated_count
 
 def sync_csv_with_disk(data_dir="data", snapshot_dir="snapshots", date_str=None):
     """Xóa tất cả các dòng trong CSV mà file ảnh tương ứng không còn tồn tại trên đĩa."""

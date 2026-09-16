@@ -204,16 +204,21 @@
 
         /* Filter Tabs */
         .filter-section {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
+            background: rgba(13, 19, 36, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: 14px;
             border: 1px solid var(--border-color);
-            padding: 14px 18px;
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
         }
 
         .filter-tabs {
@@ -664,6 +669,106 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+
+        /* Mark Clean Button & Verified Badges */
+        .btn-mark-clean {
+            background: rgba(56, 239, 125, 0.12);
+            border: 1px solid rgba(56, 239, 125, 0.35);
+            color: #38ef7d;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-mark-clean:hover {
+            background: rgba(56, 239, 125, 0.28);
+            border-color: #38ef7d;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-verified {
+            background: rgba(56, 239, 125, 0.25);
+            border: 1px solid #38ef7d;
+            color: #38ef7d;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-verified:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .tag-green {
+            background: rgba(56, 239, 125, 0.2);
+            color: #38ef7d;
+            border: 1px solid rgba(56, 239, 125, 0.4);
+        }
+
+        /* Floating Bulk Action Bar (Fixed at bottom when scrolled) */
+        .floating-bulk-bar {
+            position: fixed;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--accent-cyan);
+            box-shadow: 0 14px 45px rgba(0, 0, 0, 0.75), 0 0 30px rgba(0, 242, 254, 0.3);
+            border-radius: 50px;
+            padding: 8px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .floating-bulk-bar.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .floating-bulk-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            white-space: nowrap;
+        }
+
+        .floating-badge {
+            background: var(--accent-cyan);
+            color: #031b2e;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .floating-bulk-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -757,10 +862,16 @@
             <div class="toolbar">
                 <div class="toolbar-left">
                     <input type="text" id="search-box" class="search-input" placeholder="🔍 Tìm theo giờ / số..." oninput="onSearch(this.value)">
+                    <button id="btn-sort-time" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px;" onclick="toggleSortOrder()" title="Bấm để đổi thứ tự thời gian: Mới nhất trước hoặc Cũ nhất trước">
+                        <span id="sort-order-label">⬇️ Mới nhất trước</span>
+                    </button>
                 </div>
                 <div class="toolbar-right">
                     <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="selectAllVisible(true)">
                         ☑ Chọn tất cả
+                    </button>
+                    <button id="btn-mark-clean-selected" class="btn btn-mark-clean" style="display: none; padding: 6px 12px; font-size: 0.82rem; font-weight: 600;" onclick="markSelectedClean(true)">
+                        ✅ Đánh dấu chuẩn (<span id="selected-clean-count">0</span>)
                     </button>
                     <button id="btn-del-selected" class="btn btn-del" style="display: none;" onclick="deleteSelected()">
                         🗑️ Xóa (<span id="selected-count">0</span>) mục
@@ -804,13 +915,32 @@
                         <th>Độ tin cậy</th>
                         <th>Ảnh Snapshot</th>
                         <th>Cảnh báo / Ghi chú</th>
-                        <th style="text-align: center; width: 100px;">Thao tác</th>
+                        <th style="text-align: center; width: 140px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="table-tbody">
                     <!-- Table rows dynamically injected here -->
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Floating Bulk Action Bar (Hiển thị cố định ở đáy khi cuộn và có ảnh được chọn) -->
+    <div id="floating-bulk-bar" class="floating-bulk-bar">
+        <div class="floating-bulk-info">
+            <span class="floating-badge" id="float-selected-cnt">0</span>
+            <span>ảnh được chọn</span>
+        </div>
+        <div class="floating-bulk-actions">
+            <button class="btn btn-del" style="padding: 7px 16px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);" onclick="deleteSelected()">
+                🗑️ Xóa toàn bộ (<span id="float-del-cnt">0</span>)
+            </button>
+            <button class="btn btn-mark-clean" style="padding: 7px 14px; font-size: 0.85rem; font-weight: 600;" onclick="markSelectedClean(true)">
+                ✅ Đánh dấu chuẩn
+            </button>
+            <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 0.82rem;" onclick="selectAllVisible(false)">
+                ✕ Bỏ chọn
+            </button>
         </div>
     </div>
 
@@ -842,7 +972,10 @@
                         Độ tin cậy: <strong id="modal-conf" style="color: white;">--%</strong>
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="modal-btn-mark-clean" class="btn btn-mark-clean" style="padding: 6px 12px; font-size: 0.85rem;" onclick="toggleModalMarkClean()">
+                        ✅ Đánh dấu chuẩn
+                    </button>
                     <button class="btn btn-del" onclick="deleteModalCurrentRecord()">
                         🗑️ Xóa ảnh & bản ghi này (Del)
                     </button>
@@ -863,10 +996,26 @@
         let viewMode = 'gallery';
         let selectedKeys = new Set();
         let currentModalIndex = -1;
+        let currentSort = localStorage.getItem('analyzer_sort') || 'desc';
+
+        function toggleSortOrder() {
+            currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+            try { localStorage.setItem('analyzer_sort', currentSort); } catch (e) {}
+            updateSortUI();
+            applyFilters();
+        }
+
+        function updateSortUI() {
+            const lbl = document.getElementById('sort-order-label');
+            if (lbl) {
+                lbl.innerText = currentSort === 'desc' ? '⬇️ Mới nhất trước' : '⬆️ Cũ nhất trước';
+            }
+        }
 
         // Load dates on startup
         async function init() {
             try {
+                updateSortUI();
                 const res = await fetch('/api/analyzer/dates');
                 const dates = await res.json();
                 const sel = document.getElementById('select-date');
@@ -984,6 +1133,12 @@
                 return true; // 'all'
             });
 
+            // Sort by timestamp
+            filteredRecords.sort((a, b) => {
+                const cmp = (a.timestamp || '').localeCompare(b.timestamp || '');
+                return currentSort === 'desc' ? -cmp : cmp;
+            });
+
             renderData();
         }
 
@@ -1033,7 +1188,8 @@
                 let tagHtml = '';
                 (r.anomalies || []).forEach(a => {
                     let c = 'tag-red';
-                    if (a.includes('7')) c = 'tag-purple';
+                    if (a.includes('chuẩn') || a.includes('✅')) c = 'tag-green';
+                    else if (a.includes('7')) c = 'tag-purple';
                     else if (a.includes('tin cậy')) c = 'tag-yellow';
                     else if (a.includes('Thiếu')) c = 'tag-gray';
                     tagHtml += `<span class="tag ${c}">${a}</span>`;
@@ -1064,11 +1220,14 @@
                             </div>
 
                             <div class="card-actions">
-                                <button class="btn btn-secondary" style="flex: 1; padding: 4px 8px; font-size: 0.75rem;" onclick="openLightbox(${idx})">
-                                    🔍 Phóng to
+                                <button class="btn btn-secondary" style="flex: 1; padding: 3px 6px; font-size: 0.72rem;" onclick="openLightbox(${idx})" title="Xem ảnh phóng to">
+                                    🔍 Xem
                                 </button>
-                                <button class="btn btn-del" style="padding: 4px 10px; font-size: 0.75rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')" title="Xóa dòng CSV & file ảnh">
-                                    🗑️ Xóa
+                                <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 6px; font-size: 0.72rem;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Bấm để hủy xác nhận chuẩn' : 'Đánh dấu ảnh này là chuẩn'}">
+                                    ${r.is_verified ? '✔️ Đã chuẩn' : '✅ Chuẩn'}
+                                </button>
+                                <button class="btn btn-del" style="padding: 3px 6px; font-size: 0.72rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')" title="Xóa dòng CSV & file ảnh">
+                                    🗑️
                                 </button>
                             </div>
                         </div>
@@ -1102,7 +1261,10 @@
                     thumbHtml = `<span style="color: #ef4444; font-size: 0.75rem;">Thiếu file</span>`;
                 }
 
-                let tagHtml = (r.anomalies || []).map(a => `<span class="tag tag-red" style="margin-right: 4px;">${a}</span>`).join('');
+                let tagHtml = (r.anomalies || []).map(a => {
+                    let c = a.includes('chuẩn') || a.includes('✅') ? 'tag-green' : 'tag-red';
+                    return `<span class="tag ${c}" style="margin-right: 4px;">${a}</span>`;
+                }).join('');
 
                 html += `
                     <tr>
@@ -1117,7 +1279,10 @@
                         <td>${r.confidence}</td>
                         <td>${thumbHtml}</td>
                         <td>${tagHtml || '<span style="color: #38ef7d; font-size: 0.75rem;">OK</span>'}</td>
-                        <td style="text-align: center;">
+                        <td style="text-align: center; white-space: nowrap;">
+                            <button class="btn ${r.is_verified ? 'btn-verified' : 'btn-mark-clean'}" style="padding: 3px 7px; font-size: 0.75rem; margin-right: 4px;" onclick="toggleMarkCleanSingle('${r.timestamp}', ${!r.is_verified})" title="${r.is_verified ? 'Bấm để hủy xác nhận chuẩn' : 'Đánh dấu ảnh này là chuẩn'}">
+                                ${r.is_verified ? '✔️ Đã chuẩn' : '✅ Chuẩn'}
+                            </button>
                             <button class="btn btn-del" style="padding: 3px 8px; font-size: 0.75rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')">
                                 🗑️ Xóa
                             </button>
@@ -1204,10 +1369,66 @@
 
         function updateSelectedUI() {
             const count = selectedKeys.size;
-            const btn = document.getElementById('btn-del-selected');
+            const btnDel = document.getElementById('btn-del-selected');
             const cntSpan = document.getElementById('selected-count');
-            cntSpan.innerText = count;
-            btn.style.display = count > 0 ? 'inline-flex' : 'none';
+            const btnClean = document.getElementById('btn-mark-clean-selected');
+            const cntCleanSpan = document.getElementById('selected-clean-count');
+
+            if (cntSpan) cntSpan.innerText = count;
+            if (cntCleanSpan) cntCleanSpan.innerText = count;
+            if (btnDel) btnDel.style.display = count > 0 ? 'inline-flex' : 'none';
+            if (btnClean) btnClean.style.display = count > 0 ? 'inline-flex' : 'none';
+
+            // Floating bulk action bar
+            const floatBar = document.getElementById('floating-bulk-bar');
+            const floatCnt = document.getElementById('float-selected-cnt');
+            const floatDelCnt = document.getElementById('float-del-cnt');
+
+            if (floatBar) {
+                if (count > 0) {
+                    if (floatCnt) floatCnt.innerText = count;
+                    if (floatDelCnt) floatDelCnt.innerText = count;
+                    floatBar.classList.add('active');
+                } else {
+                    floatBar.classList.remove('active');
+                }
+            }
+        }
+
+        // Mark Clean Handlers
+        async function toggleMarkCleanSingle(ts, isClean) {
+            await executeMarkClean([ts], isClean);
+        }
+
+        async function markSelectedClean(isClean = true) {
+            const count = selectedKeys.size;
+            if (count === 0) return;
+            const timestamps = Array.from(selectedKeys);
+            await executeMarkClean(timestamps, isClean);
+        }
+
+        async function executeMarkClean(timestamps, isClean) {
+            try {
+                const res = await fetch('/api/analyzer/mark_clean', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: currentDate,
+                        timestamps: timestamps,
+                        is_clean: isClean
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedKeys.clear();
+                    updateSelectedUI();
+                    await loadRecords(currentDate);
+                } else {
+                    alert('Lỗi cập nhật trạng thái chuẩn!');
+                }
+            } catch (e) {
+                alert('Lỗi kết nối máy chủ!');
+            }
         }
 
         // Inline Edit Value
@@ -1350,6 +1571,17 @@
             document.getElementById('modal-input-val').value = r.value;
             document.getElementById('modal-conf').innerText = r.confidence;
 
+            const btnClean = document.getElementById('modal-btn-mark-clean');
+            if (btnClean) {
+                if (r.is_verified) {
+                    btnClean.className = 'btn btn-verified';
+                    btnClean.innerText = '✔️ Đã là chuẩn (Hủy)';
+                } else {
+                    btnClean.className = 'btn btn-mark-clean';
+                    btnClean.innerText = '✅ Đánh dấu chuẩn';
+                }
+            }
+
             const imgEl = document.getElementById('modal-full-img');
             const btnDl = document.getElementById('modal-btn-download');
 
@@ -1365,6 +1597,16 @@
             }
 
             document.getElementById('lightbox-modal').classList.add('active');
+        }
+
+        async function toggleModalMarkClean() {
+            if (currentModalIndex < 0 || currentModalIndex >= filteredRecords.length) return;
+            const r = filteredRecords[currentModalIndex];
+            const nextState = !r.is_verified;
+            await executeMarkClean([r.timestamp], nextState);
+            if (currentModalIndex < filteredRecords.length) {
+                openLightbox(currentModalIndex);
+            }
         }
 
         function closeLightbox(e) {

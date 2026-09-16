@@ -26,6 +26,7 @@ from analyzer_helper import (
     load_date_records,
     delete_date_records,
     update_record_value,
+    mark_records_clean,
     sync_csv_with_disk
 )
 
@@ -319,6 +320,21 @@ def api_analyzer_update_value():
         logger._load_from_csv()
 
     return jsonify({"success": success})
+
+@app.route('/api/analyzer/mark_clean', methods=['POST'])
+def api_analyzer_mark_clean():
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    timestamps = list(data.get("timestamps", []))
+    is_clean = bool(data.get("is_clean", True))
+    data_dir = settings.get("data_dir", "data")
+
+    count = mark_records_clean(data_dir, date_str, timestamps, is_clean=is_clean)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if date_str == today_str:
+        logger._load_from_csv()
+
+    return jsonify({"success": True, "updated_count": count})
 
 @app.route('/api/analyzer/sync_disk', methods=['POST'])
 def api_analyzer_sync_disk():
