@@ -21,6 +21,13 @@ from config import load_settings, save_settings
 from camera_stream import CameraManager
 from ocr_reader import LCDReader
 from data_logger import DataLogger
+from analyzer_helper import (
+    get_available_dates,
+    load_date_records,
+    delete_date_records,
+    update_record_value,
+    sync_csv_with_disk
+)
 
 app = Flask(__name__)
 
@@ -258,12 +265,88 @@ def update_settings_endpoint():
     save_settings(settings)
     return jsonify({"success": True, "settings": settings})
 
+@app.route('/analyzer')
+def analyzer_page():
+    return render_template('analyzer.html', settings=settings)
+
+@app.route('/api/analyzer/dates')
+def api_analyzer_dates():
+    data_dir = settings.get("data_dir", "data")
+    snap_dir = settings.get("snapshot_dir", "snapshots")
+    dates = get_available_dates(data_dir, snap_dir)
+    return jsonify(dates)
+
+@app.route('/api/analyzer/records')
+def api_analyzer_records():
+    data_dir = settings.get("data_dir", "data")
+    snap_dir = settings.get("snapshot_dir", "snapshots")
+    date_str = request.args.get("date")
+    data = load_date_records(data_dir, snap_dir, date_str)
+    return jsonify(data)
+
+@app.route('/api/analyzer/delete', methods=['POST'])
+def api_analyzer_delete():
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    timestamps = data.get("timestamps", [])
+    snapshots = data.get("snapshots", [])
+    delete_files = bool(data.get("delete_files", True))
+    data_dir = settings.get("data_dir", "data")
+    snap_dir = settings.get("snapshot_dir", "snapshots")
+
+    count = delete_date_records(data_dir, snap_dir, date_str, timestamps, snapshots, delete_files)
+
+    # Nếu ngày này là ngày hôm nay, đồng bộ lại logger
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if date_str == today_str:
+        logger.delete_records(timestamps=timestamps, snapshots=snapshots, delete_snapshot_file=False)
+        with app_state["lock"]:
+            app_state["reset_trigger"] = True
+
+    return jsonify({"success": True, "deleted_count": count})
+
+@app.route('/api/analyzer/update_value', methods=['POST'])
+def api_analyzer_update_value():
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    timestamp = data.get("timestamp")
+    new_value = data.get("new_value")
+    data_dir = settings.get("data_dir", "data")
+
+    success = update_record_value(data_dir, date_str, timestamp, new_value)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if success and date_str == today_str:
+        logger._load_from_csv()
+
+    return jsonify({"success": success})
+
+@app.route('/api/analyzer/sync_disk', methods=['POST'])
+def api_analyzer_sync_disk():
+    data = request.get_json() or {}
+    date_str = data.get("date")
+    data_dir = settings.get("data_dir", "data")
+    snap_dir = settings.get("snapshot_dir", "snapshots")
+
+    removed_cnt, kept_cnt = sync_csv_with_disk(data_dir, snap_dir, date_str)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if date_str == today_str:
+        logger._load_from_csv()
+        with app_state["lock"]:
+            app_state["reset_trigger"] = True
+
+    return jsonify({"success": True, "removed_count": removed_cnt, "remaining_count": kept_cnt})
+
 @app.route('/api/download_csv')
 def download_csv():
-    csv_file = logger.get_csv_filename()
+    date_req = request.args.get("date")
+    if date_req:
+        csv_file = os.path.join(settings.get("data_dir", "data"), f"readings_{date_req}.csv")
+    else:
+        csv_file = logger.get_csv_filename()
+
     if os.path.exists(csv_file):
         return send_file(csv_file, as_attachment=True, download_name=os.path.basename(csv_file))
-    return jsonify({"error": "No CSV data file recorded yet."}), 404
+    return jsonify({"error": "No CSV data file found."}), 404
 
 @app.route('/snapshots/<path:filename>')
 def serve_snapshot(filename):

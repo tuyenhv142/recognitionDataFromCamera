@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snapshot Analyzer & Data Cleaner - OCR Radiation Meter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0f1d;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(0, 242, 254, 0.3);
+            --accent-cyan: #00f2fe;
+            --accent-green: #38ef7d;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-purple: #a855f7;
+            --lcd-color: #38ef7d;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(56, 239, 125, 0.04) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 16px 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            font-size: 2rem;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #031b2e;
+            box-shadow: 0 4px 14px rgba(0, 242, 254, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+
+        .btn-del {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-del:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+        }
+
+        .select-date {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* KPI Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            font-size: 1.8rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: 'Share Tech Mono', monospace;
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Filter Tabs */
+        .filter-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.09);
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .tab-badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+
+        .tab-btn.active .tab-badge {
+            background: var(--accent-cyan);
+            color: #031b2e;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+            width: 220px;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        /* Gallery Grid View */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .snap-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .snap-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-highlight);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .snap-card.suspicious {
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .card-img-wrap {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: #050811;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .card-img-wrap:hover .card-img {
+            transform: scale(1.05);
+        }
+
+        .card-check {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        .missing-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            font-size: 0.85rem;
+            background: rgba(239, 68, 68, 0.1);
+            gap: 6px;
+        }
+
+        .card-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .card-val-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .val-display {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--lcd-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-edit-val {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .btn-edit-val:hover {
+            color: var(--accent-cyan);
+        }
+
+        .val-edit-input {
+            width: 90px;
+            background: #050811;
+            border: 1px solid var(--accent-cyan);
+            color: var(--lcd-color);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.4rem;
+            border-radius: 6px;
+            padding: 2px 6px;
+            text-align: center;
+        }
+
+        .conf-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .conf-high {
+            background: rgba(56, 239, 125, 0.15);
+            color: #38ef7d;
+        }
+
+        .conf-med {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .conf-low {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .anomaly-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .tag-red {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .tag-yellow {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .tag-purple {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        .tag-gray {
+            background: rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 8px;
+        }
+
+        /* Table View */
+        .table-wrap {
+            background: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            overflow: auto;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-muted);
+            padding: 10px 14px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Modal Lightbox */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-box {
+            max-width: 1100px;
+            width: 95%;
+            max-height: 92vh;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-header {
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-img-stage {
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 450px;
+            max-height: 65vh;
+            overflow: hidden;
+        }
+
+        .modal-img {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+        }
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .nav-arrow:hover {
+            background: var(--accent-cyan);
+            color: #031b2e;
+        }
+
+        .nav-prev { left: 16px; }
+        .nav-next { right: 16px; }
+
+        .modal-footer {
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <div class="brand-icon">🔍</div>
+                <div>
+                    <h1>Snapshot Analyzer & Data Cleaner</h1>
+                    <p>Phân tích ảnh chụp, phát hiện bất thường & lọc dữ liệu CSV tốc độ cao</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary">
+                    📹 Live Camera
+                </a>
+                <label style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                    📅 Ngày:
+                    <select id="select-date" class="select-date" onchange="onDateChange(this.value)">
+                        <option value="">Đang nạp...</option>
+                    </select>
+                </label>
+                <button class="btn btn-secondary" onclick="syncWithDisk()" title="Xóa các dòng trong CSV mà file ảnh đã bị xóa trên đĩa">
+                    🔄 Sync with Disk
+                </button>
+                <button class="btn btn-primary" onclick="downloadCurrentCSV()">
+                    📥 Tải file CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #00f2fe;">📋</div>
+                <div>
+                    <div id="stat-total" class="stat-val">0</div>
+                    <div class="stat-lbl">Tổng số bản ghi CSV</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #38ef7d;">🖼️</div>
+                <div>
+                    <div id="stat-snaps" class="stat-val">0</div>
+                    <div class="stat-lbl">Ảnh có trên đĩa</div>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: rgba(239, 68, 68, 0.4);">
+                <div class="stat-icon" style="color: #ef4444;">🚨</div>
+                <div>
+                    <div id="stat-suspicious" class="stat-val" style="color: #ef4444;">0</div>
+                    <div class="stat-lbl">Ảnh nghi vấn / Bất thường</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #38ef7d;">✅</div>
+                <div>
+                    <div id="stat-clean" class="stat-val" style="color: #38ef7d;">0</div>
+                    <div class="stat-lbl">Bản ghi chuẩn (0.001 - 0.003)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs & Toolbar -->
+        <div class="filter-section">
+            <div class="filter-tabs">
+                <button class="tab-btn active" onclick="setFilter('suspicious')">
+                    🚨 Nghi vấn <span id="tab-cnt-suspicious" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('outliers')">
+                    💥 Giá trị lạ (>0.01) <span id="tab-cnt-outliers" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('low_conf')">
+                    📉 Tin cậy thấp <span id="tab-cnt-lowconf" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('seven')">
+                    7️⃣ Chứa số 7 <span id="tab-cnt-seven" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('missing')">
+                    ❌ Thiếu file ảnh <span id="tab-cnt-missing" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('clean')">
+                    🟢 Chuẩn <span id="tab-cnt-clean" class="tab-badge">0</span>
+                </button>
+                <button class="tab-btn" onclick="setFilter('all')">
+                    📁 Tất cả <span id="tab-cnt-all" class="tab-badge">0</span>
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <input type="text" id="search-box" class="search-input" placeholder="🔍 Tìm theo giờ / số..." oninput="onSearch(this.value)">
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="selectAllVisible(true)">
+                        ☑ Chọn tất cả
+                    </button>
+                    <button id="btn-del-selected" class="btn btn-del" style="display: none;" onclick="deleteSelected()">
+                        🗑️ Xóa (<span id="selected-count">0</span>) mục
+                    </button>
+                    <div style="display: flex; gap: 4px; border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
+                        <button id="btn-view-gallery" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: rgba(0, 242, 254, 0.2);" onclick="setViewMode('gallery')">
+                            🗂️ Lưới
+                        </button>
+                        <button id="btn-view-table" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="setViewMode('table')">
+                            📋 Bảng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="gallery-container" class="gallery-grid">
+            <!-- Snapshots Cards dynamically injected here -->
+        </div>
+
+        <div id="table-container" class="table-wrap" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 36px; text-align: center;">
+                            <input type="checkbox" id="table-master-check" onchange="toggleMasterCheck(this)">
+                        </th>
+                        <th>Thời gian</th>
+                        <th>Giá trị đo</th>
+                        <th>Độ tin cậy</th>
+                        <th>Ảnh Snapshot</th>
+                        <th>Cảnh báo / Ghi chú</th>
+                        <th style="text-align: center; width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="table-tbody">
+                    <!-- Table rows dynamically injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal Fullscreen -->
+    <div id="lightbox-modal" class="modal" onclick="closeLightbox(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <strong id="modal-time" style="font-size: 1.05rem;">Timestamp</strong>
+                    <span id="modal-snapname" style="font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;">snap_...jpg</span>
+                </div>
+                <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeLightbox()">&times;</button>
+            </div>
+
+            <div class="modal-img-stage">
+                <button class="nav-arrow nav-prev" onclick="navigateLightbox(-1)" title="Ảnh trước (Phím mũi tên Trái)">&#10094;</button>
+                <img id="modal-full-img" class="modal-img" src="" alt="Snapshot Full">
+                <button class="nav-arrow nav-next" onclick="navigateLightbox(1)" title="Ảnh tiếp theo (Phím mũi tên Phải)">&#10095;</button>
+            </div>
+
+            <div class="modal-footer">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="font-size: 0.9rem;">
+                        Giá trị: 
+                        <input type="text" id="modal-input-val" class="val-edit-input" style="font-size: 1.1rem; width: 95px;">
+                        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="saveModalValue()">💾 Lưu</button>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        Độ tin cậy: <strong id="modal-conf" style="color: white;">--%</strong>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-del" onclick="deleteModalCurrentRecord()">
+                        🗑️ Xóa ảnh & bản ghi này (Del)
+                    </button>
+                    <a id="modal-btn-download" href="" download class="btn btn-secondary">
+                        ⬇ Tải ảnh
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = '';
+        let allRecords = [];
+        let filteredRecords = [];
+        let currentFilter = 'suspicious';
+        let currentSearch = '';
+        let viewMode = 'gallery';
+        let selectedKeys = new Set();
+        let currentModalIndex = -1;
+
+        // Load dates on startup
+        async function init() {
+            try {
+                const res = await fetch('/api/analyzer/dates');
+                const dates = await res.json();
+                const sel = document.getElementById('select-date');
+                sel.innerHTML = '';
+
+                if (!dates || dates.length === 0) {
+                    sel.innerHTML = '<option value="">Không có file CSV</option>';
+                    return;
+                }
+
+                dates.forEach((d, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = d.date;
+                    opt.innerText = `${d.date} (${d.total_records} bản ghi - ${d.suspicious_records} nghi vấn)`;
+                    sel.appendChild(opt);
+                });
+
+                // Ưu tiên chọn ngày có nhiều bản ghi nhất hoặc ngày 2026-09-15
+                let targetDate = dates[0].date;
+                const date15 = dates.find(d => d.date === '2026-09-15');
+                if (date15) {
+                    targetDate = date15.date;
+                }
+                sel.value = targetDate;
+                currentDate = targetDate;
+                loadRecords(currentDate);
+
+            } catch (err) {
+                console.error('Failed to init analyzer:', err);
+            }
+        }
+
+        async function loadRecords(dateStr) {
+            try {
+                const res = await fetch(`/api/analyzer/records?date=${dateStr}`);
+                const data = await res.json();
+                allRecords = data.records || [];
+                selectedKeys.clear();
+                updateSelectedUI();
+
+                // Update Stats
+                const s = data.stats || {};
+                document.getElementById('stat-total').innerText = s.total || 0;
+                document.getElementById('stat-snaps').innerText = (s.total - s.missing_images) || 0;
+                document.getElementById('stat-suspicious').innerText = s.suspicious || 0;
+                document.getElementById('stat-clean').innerText = s.clean || 0;
+
+                // Update Tab badges
+                document.getElementById('tab-cnt-suspicious').innerText = s.suspicious || 0;
+                document.getElementById('tab-cnt-outliers').innerText = s.outliers || 0;
+                document.getElementById('tab-cnt-lowconf').innerText = s.low_conf || 0;
+                document.getElementById('tab-cnt-seven').innerText = s.seven_suspects || 0;
+                document.getElementById('tab-cnt-missing').innerText = s.missing_images || 0;
+                document.getElementById('tab-cnt-clean').innerText = s.clean || 0;
+                document.getElementById('tab-cnt-all').innerText = s.total || 0;
+
+                // Tự động mở tab Tất cả nếu số nghi vấn = 0
+                if (s.suspicious === 0 && currentFilter === 'suspicious') {
+                    currentFilter = 'all';
+                    updateTabButtons();
+                }
+
+                applyFilters();
+
+            } catch (e) {
+                console.error('Error loading records:', e);
+            }
+        }
+
+        function onDateChange(newDate) {
+            currentDate = newDate;
+            loadRecords(currentDate);
+        }
+
+        function setFilter(filterName) {
+            currentFilter = filterName;
+            updateTabButtons();
+            applyFilters();
+        }
+
+        function updateTabButtons() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const map = {
+                'suspicious': 0, 'outliers': 1, 'low_conf': 2, 'seven': 3,
+                'missing': 4, 'clean': 5, 'all': 6
+            };
+            const btns = document.querySelectorAll('.tab-btn');
+            if (btns[map[currentFilter]]) {
+                btns[map[currentFilter]].classList.add('active');
+            }
+        }
+
+        function onSearch(val) {
+            currentSearch = (val || '').toLowerCase().trim();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            filteredRecords = allRecords.filter(r => {
+                // Search query filter
+                if (currentSearch) {
+                    const matchTime = r.timestamp.toLowerCase().includes(currentSearch);
+                    const matchVal = r.value.toLowerCase().includes(currentSearch);
+                    if (!matchTime && !matchVal) return false;
+                }
+
+                // Tab filter
+                if (currentFilter === 'suspicious') return r.is_suspicious;
+                if (currentFilter === 'outliers') return r.anomalies.some(a => a.includes('bất thường') || a.includes('Spike'));
+                if (currentFilter === 'low_conf') return r.confidence_num < 60.0;
+                if (currentFilter === 'seven') return r.value.includes('7');
+                if (currentFilter === 'missing') return !r.file_exists;
+                if (currentFilter === 'clean') return !r.is_suspicious;
+                return true; // 'all'
+            });
+
+            renderData();
+        }
+
+        function renderData() {
+            if (viewMode === 'gallery') {
+                renderGallery();
+            } else {
+                renderTable();
+            }
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('gallery-container');
+            if (filteredRecords.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">
+                        🎉 Không có bản ghi nào trong bộ lọc này!
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredRecords.forEach((r, idx) => {
+                const isChecked = selectedKeys.has(r.timestamp) ? 'checked' : '';
+                const suspClass = r.is_suspicious ? 'suspicious' : '';
+                
+                // Confidence styling
+                let confClass = 'conf-high';
+                if (r.confidence_num < 50) confClass = 'conf-low';
+                else if (r.confidence_num < 70) confClass = 'conf-med';
+
+                // Image thumbnail
+                let imgContent = '';
+                if (r.file_exists) {
+                    imgContent = `<img src="/snapshots/${r.snapshot}" class="card-img" alt="Snapshot" loading="lazy">`;
+                } else {
+                    imgContent = `
+                        <div class="missing-label">
+                            <span style="font-size: 1.5rem;">❌</span>
+                            <span>Ảnh không có trên đĩa</span>
+                        </div>
+                    `;
+                }
+
+                // Anomalies tags
+                let tagHtml = '';
+                (r.anomalies || []).forEach(a => {
+                    let c = 'tag-red';
+                    if (a.includes('7')) c = 'tag-purple';
+                    else if (a.includes('tin cậy')) c = 'tag-yellow';
+                    else if (a.includes('Thiếu')) c = 'tag-gray';
+                    tagHtml += `<span class="tag ${c}">${a}</span>`;
+                });
+
+                html += `
+                    <div class="snap-card ${suspClass}" id="card-${idx}">
+                        <div class="card-img-wrap" onclick="openLightbox(${idx})">
+                            <input type="checkbox" class="card-check" value="${r.timestamp}" data-snap="${r.snapshot}" ${isChecked} onclick="onCheckCard(event, '${r.timestamp}')">
+                            ${imgContent}
+                        </div>
+                        <div class="card-body">
+                            <div class="card-val-row">
+                                <div class="val-display" id="val-box-${idx}">
+                                    <span id="val-text-${idx}">${r.value}</span>
+                                    <button class="btn-edit-val" onclick="startEditValue(${idx})" title="Sửa giá trị">✏️</button>
+                                </div>
+                                <span class="conf-badge ${confClass}">${r.confidence}</span>
+                            </div>
+
+                            <div class="card-meta">
+                                <span>🕒 ${r.timestamp}</span>
+                                <span style="font-size: 0.72rem; color: #64748b;">${r.snapshot || 'No snap'}</span>
+                            </div>
+
+                            <div class="anomaly-tags">
+                                ${tagHtml}
+                            </div>
+
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" style="flex: 1; padding: 4px 8px; font-size: 0.75rem;" onclick="openLightbox(${idx})">
+                                    🔍 Phóng to
+                                </button>
+                                <button class="btn btn-del" style="padding: 4px 10px; font-size: 0.75rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')" title="Xóa dòng CSV & file ảnh">
+                                    🗑️ Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-tbody');
+            if (filteredRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            🎉 Không có bản ghi nào trong bộ lọc này!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredRecords.forEach((r, idx) => {
+                const isChecked = selectedKeys.has(r.timestamp) ? 'checked' : '';
+                let thumbHtml = '-';
+                if (r.file_exists) {
+                    thumbHtml = `<img src="/snapshots/${r.snapshot}" style="width: 50px; height: 36px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="openLightbox(${idx})">`;
+                } else {
+                    thumbHtml = `<span style="color: #ef4444; font-size: 0.75rem;">Thiếu file</span>`;
+                }
+
+                let tagHtml = (r.anomalies || []).map(a => `<span class="tag tag-red" style="margin-right: 4px;">${a}</span>`).join('');
+
+                html += `
+                    <tr>
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="table-check" value="${r.timestamp}" data-snap="${r.snapshot}" ${isChecked} onchange="onCheckTable('${r.timestamp}', this.checked)">
+                        </td>
+                        <td>${r.timestamp}</td>
+                        <td>
+                            <strong style="font-family: 'Share Tech Mono'; font-size: 1.1rem; color: var(--lcd-color);">${r.value}</strong>
+                            <button class="btn-edit-val" onclick="quickEditPrompt('${r.timestamp}', '${r.value}')">✏️</button>
+                        </td>
+                        <td>${r.confidence}</td>
+                        <td>${thumbHtml}</td>
+                        <td>${tagHtml || '<span style="color: #38ef7d; font-size: 0.75rem;">OK</span>'}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-del" style="padding: 3px 8px; font-size: 0.75rem;" onclick="deleteSingle('${r.timestamp}', '${r.snapshot}')">
+                                🗑️ Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            if (mode === 'gallery') {
+                document.getElementById('gallery-container').style.display = 'grid';
+                document.getElementById('table-container').style.display = 'none';
+                document.getElementById('btn-view-gallery').style.background = 'rgba(0, 242, 254, 0.2)';
+                document.getElementById('btn-view-table').style.background = 'rgba(255, 255, 255, 0.06)';
+            } else {
+                document.getElementById('gallery-container').style.display = 'none';
+                document.getElementById('table-container').style.display = 'block';
+                document.getElementById('btn-view-table').style.background = 'rgba(0, 242, 254, 0.2)';
+                document.getElementById('btn-view-gallery').style.background = 'rgba(255, 255, 255, 0.06)';
+            }
+            renderData();
+        }
+
+        // Selection Handlers
+        function onCheckCard(e, ts) {
+            e.stopPropagation();
+            if (e.target.checked) selectedKeys.add(ts);
+            else selectedKeys.delete(ts);
+            updateSelectedUI();
+        }
+
+        function onCheckTable(ts, checked) {
+            if (checked) selectedKeys.add(ts);
+            else selectedKeys.delete(ts);
+            updateSelectedUI();
+        }
+
+        function selectAllVisible(selectAll) {
+            filteredRecords.forEach(r => {
+                if (selectAll) selectedKeys.add(r.timestamp);
+                else selectedKeys.delete(r.timestamp);
+            });
+            updateSelectedUI();
+            renderData();
+        }
+
+        function toggleMasterCheck(master) {
+            selectAllVisible(master.checked);
+        }
+
+        function updateSelectedUI() {
+            const count = selectedKeys.size;
+            const btn = document.getElementById('btn-del-selected');
+            const cntSpan = document.getElementById('selected-count');
+            cntSpan.innerText = count;
+            btn.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+
+        // Inline Edit Value
+        function startEditValue(idx) {
+            const r = filteredRecords[idx];
+            const box = document.getElementById(`val-box-${idx}`);
+            box.innerHTML = `
+                <input type="text" id="edit-input-${idx}" class="val-edit-input" value="${r.value}" onkeydown="onKeySaveEdit(event, ${idx}, '${r.timestamp}')">
+                <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="commitEditValue(${idx}, '${r.timestamp}')">Lưu</button>
+            `;
+            document.getElementById(`edit-input-${idx}`).focus();
+        }
+
+        function onKeySaveEdit(e, idx, ts) {
+            if (e.key === 'Enter') commitEditValue(idx, ts);
+            else if (e.key === 'Escape') renderData();
+        }
+
+        async function commitEditValue(idx, ts) {
+            const input = document.getElementById(`edit-input-${idx}`);
+            if (!input) return;
+            const newVal = input.value.trim();
+            if (!newVal) return;
+
+            try {
+                const res = await fetch('/api/analyzer/update_value', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: currentDate, timestamp: ts, new_value: newVal })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update in local array
+                    const item = allRecords.find(x => x.timestamp === ts);
+                    if (item) item.value = newVal;
+                    loadRecords(currentDate);
+                } else {
+                    alert('Lỗi cập nhật giá trị');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
+
+        async function quickEditPrompt(ts, oldVal) {
+            const newVal = prompt(`Nhập giá trị mới cho bản ghi [${ts}]:`, oldVal);
+            if (newVal !== null && newVal.trim() !== '') {
+                try {
+                    const res = await fetch('/api/analyzer/update_value', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ date: currentDate, timestamp: ts, new_value: newVal.trim() })
+                    });
+                    const data = await res.json();
+                    if (data.success) loadRecords(currentDate);
+                    else alert('Không sửa được giá trị');
+                } catch (e) {
+                    alert('Lỗi kết nối!');
+                }
+            }
+        }
+
+        // Deletion
+        async function deleteSingle(ts, snap) {
+            if (!confirm(`Xóa bản ghi thời gian [${ts}] cùng file ảnh tương ứng?`)) return;
+            await executeDelete([ts], [snap]);
+        }
+
+        async function deleteSelected() {
+            const count = selectedKeys.size;
+            if (count === 0) return;
+            if (!confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN ${count} bản ghi đã chọn (cùng file ảnh trên đĩa)?`)) return;
+
+            const timestamps = Array.from(selectedKeys);
+            const snapshots = [];
+            allRecords.forEach(r => {
+                if (selectedKeys.has(r.timestamp) && r.snapshot) {
+                    snapshots.push(r.snapshot);
+                }
+            });
+
+            await executeDelete(timestamps, snapshots);
+        }
+
+        async function executeDelete(timestamps, snapshots) {
+            try {
+                const res = await fetch('/api/analyzer/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: currentDate,
+                        timestamps: timestamps,
+                        snapshots: snapshots,
+                        delete_files: true
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    selectedKeys.clear();
+                    loadRecords(currentDate);
+                } else {
+                    alert('Lỗi khi xóa bản ghi!');
+                }
+            } catch (e) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
+
+        // Sync with Disk
+        async function syncWithDisk() {
+            if (!confirm(`Tự động đối chiếu thư mục snapshots: Xóa tất cả các dòng trong CSV ngày ${currentDate} mà file ảnh không còn tồn tại trên đĩa?`)) return;
+            try {
+                const res = await fetch('/api/analyzer/sync_disk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: currentDate })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Đã dọn dẹp thành công! Đã loại bỏ ${data.removed_count} bản ghi thiếu ảnh, còn lại ${data.remaining_count} bản ghi chuẩn.`);
+                    loadRecords(currentDate);
+                }
+            } catch (e) {
+                alert('Lỗi đồng bộ!');
+            }
+        }
+
+        function downloadCurrentCSV() {
+            window.location.href = `/api/download_csv?date=${currentDate}`;
+        }
+
+        // Lightbox Modal
+        function openLightbox(idx) {
+            if (idx < 0 || idx >= filteredRecords.length) return;
+            currentModalIndex = idx;
+            const r = filteredRecords[idx];
+
+            document.getElementById('modal-time').innerText = r.timestamp;
+            document.getElementById('modal-snapname').innerText = r.snapshot || 'No snap';
+            document.getElementById('modal-input-val').value = r.value;
+            document.getElementById('modal-conf').innerText = r.confidence;
+
+            const imgEl = document.getElementById('modal-full-img');
+            const btnDl = document.getElementById('modal-btn-download');
+
+            if (r.file_exists) {
+                imgEl.src = `/snapshots/${r.snapshot}`;
+                imgEl.style.display = 'block';
+                btnDl.href = `/snapshots/${r.snapshot}`;
+                btnDl.style.display = 'inline-flex';
+            } else {
+                imgEl.src = '';
+                imgEl.style.display = 'none';
+                btnDl.style.display = 'none';
+            }
+
+            document.getElementById('lightbox-modal').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            document.getElementById('lightbox-modal').classList.remove('active');
+        }
+
+        function navigateLightbox(step) {
+            let nextIdx = currentModalIndex + step;
+            if (nextIdx < 0) nextIdx = filteredRecords.length - 1;
+            if (nextIdx >= filteredRecords.length) nextIdx = 0;
+            openLightbox(nextIdx);
+        }
+
+        async function saveModalValue() {
+            if (currentModalIndex < 0) return;
+            const r = filteredRecords[currentModalIndex];
+            const newVal = document.getElementById('modal-input-val').value.trim();
+            if (!newVal) return;
+
+            try {
+                const res = await fetch('/api/analyzer/update_value', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: currentDate, timestamp: r.timestamp, new_value: newVal })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    r.value = newVal;
+                    renderData();
+                    alert('Đã cập nhật giá trị thành công!');
+                }
+            } catch (e) {
+                alert('Lỗi cập nhật!');
+            }
+        }
+
+        async function deleteModalCurrentRecord() {
+            if (currentModalIndex < 0) return;
+            const r = filteredRecords[currentModalIndex];
+            if (!confirm(`Xóa bản ghi [${r.timestamp}] và file ảnh này?`)) return;
+
+            await executeDelete([r.timestamp], [r.snapshot]);
+            if (currentModalIndex < filteredRecords.length - 1) {
+                openLightbox(currentModalIndex);
+            } else {
+                closeLightbox();
+            }
+        }
+
+        // Keyboard navigation for Lightbox
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('lightbox-modal');
+            if (modal.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') {
+                    navigateLightbox(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateLightbox(1);
+                } else if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'Delete') {
+                    deleteModalCurrentRecord();
+                }
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
