@@ -342,6 +342,35 @@
             border-left: 3px solid var(--accent-red);
         }
 
+        .snap-card.selected {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.45);
+            background: rgba(0, 242, 254, 0.07);
+        }
+
+        .snap-card.selected .card-img-wrap::after {
+            content: '✓';
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--accent-cyan);
+            color: #031b2e;
+            font-weight: 900;
+            font-size: 0.85rem;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            z-index: 4;
+        }
+
+        .snap-card.selected .card-check {
+            transform: scale(1.15);
+        }
+
         /* Container with 4:3 aspect ratio matching the 320x240 snapshot */
         .card-img-wrap {
             position: relative;
@@ -1163,7 +1192,9 @@
 
             let html = '';
             filteredRecords.forEach((r, idx) => {
-                const isChecked = selectedKeys.has(r.timestamp) ? 'checked' : '';
+                const isSelected = selectedKeys.has(r.timestamp);
+                const isChecked = isSelected ? 'checked' : '';
+                const selectedClass = isSelected ? 'selected' : '';
                 const suspClass = r.is_suspicious ? 'suspicious' : '';
                 
                 // Confidence styling
@@ -1196,9 +1227,9 @@
                 });
 
                 html += `
-                    <div class="snap-card ${suspClass}" id="card-${idx}">
-                        <div class="card-img-wrap" onclick="openLightbox(${idx})">
-                            <input type="checkbox" class="card-check" value="${r.timestamp}" data-snap="${r.snapshot}" ${isChecked} onclick="onCheckCard(event, '${r.timestamp}')">
+                    <div class="snap-card ${suspClass} ${selectedClass}" id="card-${idx}">
+                        <div class="card-img-wrap" onclick="toggleCardSelection('${r.timestamp}', ${idx})" title="Nhấp ảnh để chọn / bỏ chọn (hoặc bấm nút 🔍 Xem bên dưới để phóng to)">
+                            <input type="checkbox" class="card-check" id="check-${idx}" value="${r.timestamp}" data-snap="${r.snapshot}" ${isChecked} onclick="onCheckCard(event, '${r.timestamp}', ${idx})">
                             ${imgContent}
                         </div>
                         <div class="card-body">
@@ -1341,11 +1372,33 @@
         }
 
         // Selection Handlers
-        function onCheckCard(e, ts) {
+        function toggleCardSelection(ts, idx) {
+            if (selectedKeys.has(ts)) {
+                selectedKeys.delete(ts);
+            } else {
+                selectedKeys.add(ts);
+            }
+            updateCardVisual(ts, idx);
+            updateSelectedUI();
+        }
+
+        function onCheckCard(e, ts, idx) {
             e.stopPropagation();
             if (e.target.checked) selectedKeys.add(ts);
             else selectedKeys.delete(ts);
+            updateCardVisual(ts, idx);
             updateSelectedUI();
+        }
+
+        function updateCardVisual(ts, idx) {
+            const isSel = selectedKeys.has(ts);
+            const card = document.getElementById(`card-${idx}`);
+            const chk = document.getElementById(`check-${idx}`);
+            if (chk) chk.checked = isSel;
+            if (card) {
+                if (isSel) card.classList.add('selected');
+                else card.classList.remove('selected');
+            }
         }
 
         function onCheckTable(ts, checked) {
